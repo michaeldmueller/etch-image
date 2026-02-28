@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { exec } from "child_process";
+import { execSync } from "child_process";
 import dotenv from "dotenv";
 import OpenAI, { toFile } from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -148,7 +148,7 @@ async function main() {
     clearInterval(spinner);
     process.stdout.write(`\rSaved: ${output}\n`);
     if (open) {
-      exec(`open "${path.resolve(output)}"`);
+      execSync(`open "${path.resolve(output)}"`);
     }
   } catch (err) {
     clearInterval(spinner);
