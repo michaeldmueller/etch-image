@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { exec } from "child_process";
 import dotenv from "dotenv";
 import OpenAI, { toFile } from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -22,6 +23,7 @@ function parseArgs(argv) {
   let model = null;
   let size = null;
   let background = null;
+  let open = false;
   const positional = [];
 
   for (let i = 0; i < args.length; i++) {
@@ -31,6 +33,8 @@ function parseArgs(argv) {
       size = args[++i];
     } else if (args[i] === "--background" && i + 1 < args.length) {
       background = args[++i];
+    } else if (args[i] === "--open") {
+      open = true;
     } else {
       positional.push(args[i]);
     }
@@ -40,7 +44,7 @@ function parseArgs(argv) {
   const prompt = positional[1];
 
   if (!output || !prompt) {
-    console.error('Usage: node generate.js <output_path> "prompt" [source_image] [--model <model>] [--size <size>]');
+    console.error('Usage: node generate.js <output_path> "prompt" [source_image] [--model <model>] [--size <size>] [--open]');
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
   }
@@ -55,7 +59,7 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  return { output, prompt, sourceImage, provider, model, size, background };
+  return { output, prompt, sourceImage, provider, model, size, background, open };
 }
 
 async function generateOpenAI(prompt, sourceImage, model, size, background) {
@@ -125,7 +129,7 @@ async function generateGemini(prompt, sourceImage, model, size) {
 }
 
 async function main() {
-  const { output, prompt, sourceImage, provider, model, size, background } = parseArgs(process.argv);
+  const { output, prompt, sourceImage, provider, model, size, background, open } = parseArgs(process.argv);
 
   const outputDir = path.dirname(path.resolve(output));
   fs.mkdirSync(outputDir, { recursive: true });
@@ -143,6 +147,9 @@ async function main() {
     fs.writeFileSync(output, buf);
     clearInterval(spinner);
     process.stdout.write(`\rSaved: ${output}\n`);
+    if (open) {
+      exec(`open "${path.resolve(output)}"`);
+    }
   } catch (err) {
     clearInterval(spinner);
     process.stdout.write(`\r`);
