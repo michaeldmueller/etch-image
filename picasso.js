@@ -23,6 +23,7 @@ function parseArgs(argv) {
   let model = null;
   let size = null;
   let background = null;
+  let quality = null;
   let open = false;
   const positional = [];
 
@@ -33,6 +34,8 @@ function parseArgs(argv) {
       size = args[++i];
     } else if (args[i] === "--background" && i + 1 < args.length) {
       background = args[++i];
+    } else if (args[i] === "--quality" && i + 1 < args.length) {
+      quality = args[++i];
     } else if (args[i] === "--open") {
       open = true;
     } else {
@@ -44,7 +47,7 @@ function parseArgs(argv) {
   const prompt = positional[1];
 
   if (!output || !prompt) {
-    console.error('Usage: node generate.js <output_path> "prompt" [source_image] [--model <model>] [--size <size>] [--open]');
+    console.error('Usage: node picasso.js <output_path> "prompt" [source_image] [--model <model>] [--size <size>] [--quality <quality>] [--open]');
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
   }
@@ -59,10 +62,10 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  return { output, prompt, sourceImage, provider, model, size, background, open };
+  return { output, prompt, sourceImage, provider, model, size, background, quality, open };
 }
 
-async function generateOpenAI(prompt, sourceImage, model, size, background) {
+async function generateOpenAI(prompt, sourceImage, model, size, background, quality) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   let result;
@@ -75,6 +78,7 @@ async function generateOpenAI(prompt, sourceImage, model, size, background) {
       prompt,
       ...(size && { size }),
       ...(background && { background }),
+      ...(quality && { quality }),
     });
   } else {
     result = await openai.images.generate({
@@ -82,6 +86,7 @@ async function generateOpenAI(prompt, sourceImage, model, size, background) {
       prompt,
       ...(size && { size }),
       ...(background && { background }),
+      ...(quality && { quality }),
     });
   }
 
@@ -129,7 +134,7 @@ async function generateGemini(prompt, sourceImage, model, size) {
 }
 
 async function main() {
-  const { output, prompt, sourceImage, provider, model, size, background, open } = parseArgs(process.argv);
+  const { output, prompt, sourceImage, provider, model, size, background, quality, open } = parseArgs(process.argv);
 
   const outputDir = path.dirname(path.resolve(output));
   fs.mkdirSync(outputDir, { recursive: true });
@@ -142,7 +147,7 @@ async function main() {
 
   try {
     const generate = provider === "openai" ? generateOpenAI : generateGemini;
-    const buf = await generate(prompt, sourceImage, model, size, background);
+    const buf = await generate(prompt, sourceImage, model, size, background, quality);
 
     fs.writeFileSync(output, buf);
     clearInterval(spinner);
