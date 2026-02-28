@@ -102,17 +102,15 @@ async function generateGemini(prompt, sourceImage, model, size) {
   if (sourceImage) {
     const imageBuffer = fs.readFileSync(sourceImage);
     const mimeType = sourceImage.endsWith(".png") ? "image/png" : "image/jpeg";
-    contents = [
-      {
-        inlineData: {
-          data: imageBuffer.toString("base64"),
-          mimeType,
-        },
-      },
-      prompt,
-    ];
+    contents = [{
+      role: "user",
+      parts: [
+        { inlineData: { data: imageBuffer.toString("base64"), mimeType } },
+        { text: prompt },
+      ],
+    }];
   } else {
-    contents = prompt;
+    contents = [{ role: "user", parts: [{ text: prompt }] }];
   }
 
   const result = await genModel.generateContent({
