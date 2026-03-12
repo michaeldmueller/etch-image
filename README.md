@@ -1,6 +1,6 @@
 # Picasso
 
-CLI tool for generating and editing images using OpenAI and Google Gemini models.
+CLI tool for editing images using OpenAI and Google Gemini models.
 
 ## Setup
 
@@ -19,7 +19,7 @@ GEMINI_API_KEY=your_key_here
 ## Usage
 
 ```bash
-node picasso.js <output_path> "prompt" [source_image] [options]
+node edit.js <input_file> <output_file> "prompt" [options]
 ```
 
 ### Options
@@ -28,8 +28,11 @@ node picasso.js <output_path> "prompt" [source_image] [options]
 |------|-------------|
 | `--model <model>` | Model to use (default: `gpt-image-1.5`) |
 | `--size <size>` | Image dimensions |
+| `--quality <quality>` | Image quality (OpenAI only) |
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after generation |
+| `--models` | List available models and exit |
+| `--sizes` | List available sizes by provider and exit |
 
 ### Available Models
 
@@ -39,20 +42,20 @@ node picasso.js <output_path> "prompt" [source_image] [options]
 
 ### Examples
 
-Generate an image:
+Edit an image:
 
 ```bash
-node picasso.js output/cat.png "a cat sitting on a windowsill" --open
+node edit.js source.png output/edited.png "make the sky purple" --open
 ```
 
 Use a specific model:
 
 ```bash
-node picasso.js output/cat.png "a cat sitting on a windowsill" --model gemini-2.5-flash-image
+node edit.js source.png output/edited.png "make the sky purple" --model gemini-2.5-flash-image
 ```
 
-Edit an existing image:
+Specify size and quality:
 
 ```bash
-node picasso.js output/edited.png "make the sky purple" source.png
+node edit.js source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
 ```
