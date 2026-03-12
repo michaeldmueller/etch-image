@@ -40,6 +40,9 @@ node edit.js <input_file> <output_file> "prompt" [options]
 
 **Gemini:** `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`
 
+### Restyle Pattern
+You are a high-end designer, tasked with restyling the room in the provided picture. You may not move or resize structural elements, such as walls, doors, and windows, unless specifically asked. Generate a hyper-realistic restyling of the provided picture, using a <theme_name> theme. The furniture and decor should match the theme. The windows and doors in the image must remain in the exact same location. The size, aspect ratio, and orientation of the image should remain exactly the same.
+
 ### Examples
 
 Edit an image:
