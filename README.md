@@ -1,6 +1,6 @@
 # Picasso
 
-CLI tool for generating and editing images using AI models.
+CLI tool for generating and editing images using popular AI models.
 
 ## Supported Providers
 
@@ -11,6 +11,8 @@ CLI tool for generating and editing images using AI models.
 **FLUX (Black Forest Labs):** `flux-kontext-pro`, `flux-kontext-max`, `flux-2-pro`, `flux-2-pro-preview`, `flux-2-flex`
 
 ## Setup
+
+Picasso is bring-your-own-token — you provide API keys for the providers you want to use. You only need keys for the providers you plan to use.
 
 ```bash
 npm install
