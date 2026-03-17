@@ -61,15 +61,15 @@ function parseArgs(argv) {
     }
   }
 
-  const sourceImage = positional[0];
-  const output = positional[1];
-  const prompt = positional[2];
-
-  if (!sourceImage || !output || !prompt) {
-    console.error('Usage: node picasso.js <input_file> <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
+  if (positional.length < 3) {
+    console.error('Usage: node edit.js <input_file> [input_file2 ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
   }
+
+  const prompt = positional[positional.length - 1];
+  const output = positional[positional.length - 2];
+  const sourceImages = positional.slice(0, -2);
 
   model = model || DEFAULT_MODEL;
   const provider = MODELS[model];
@@ -79,14 +79,18 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  return { output, prompt, sourceImage, provider, model, size, background, quality, open };
+  return { output, prompt, sourceImages, provider, model, size, background, quality, open };
 }
 
-async function generateOpenAI(prompt, sourceImage, model, size, background, quality) {
+async function generateOpenAI(prompt, sourceImages, model, size, background, quality) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  const mimeType = sourceImage.endsWith(".png") ? "image/png" : "image/jpeg";
-  const image = await toFile(fs.createReadStream(sourceImage), null, { type: mimeType });
+  const images = await Promise.all(sourceImages.map(async (src) => {
+    const mimeType = src.endsWith(".png") ? "image/png" : "image/jpeg";
+    return toFile(fs.createReadStream(src), null, { type: mimeType });
+  }));
+
+  const image = images.length === 1 ? images[0] : images;
   const result = await openai.images.edit({
     model,
     image,
@@ -100,16 +104,20 @@ async function generateOpenAI(prompt, sourceImage, model, size, background, qual
   return Buffer.from(b64, "base64");
 }
 
-async function generateGemini(prompt, sourceImage, model, size) {
+async function generateGemini(prompt, sourceImages, model, size) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const genModel = genAI.getGenerativeModel({ model });
 
-  const imageBuffer = fs.readFileSync(sourceImage);
-  const mimeType = sourceImage.endsWith(".png") ? "image/png" : "image/jpeg";
+  const imageParts = sourceImages.map((src) => {
+    const imageBuffer = fs.readFileSync(src);
+    const mimeType = src.endsWith(".png") ? "image/png" : "image/jpeg";
+    return { inlineData: { data: imageBuffer.toString("base64"), mimeType } };
+  });
+
   const contents = [{
     role: "user",
     parts: [
-      { inlineData: { data: imageBuffer.toString("base64"), mimeType } },
+      ...imageParts,
       { text: prompt },
     ],
   }];
@@ -133,7 +141,7 @@ async function generateGemini(prompt, sourceImage, model, size) {
 }
 
 async function main() {
-  const { output, prompt, sourceImage, provider, model, size, background, quality, open } = parseArgs(process.argv);
+  const { output, prompt, sourceImages, provider, model, size, background, quality, open } = parseArgs(process.argv);
 
   const outputDir = path.dirname(path.resolve(output));
   fs.mkdirSync(outputDir, { recursive: true });
@@ -146,7 +154,7 @@ async function main() {
 
   try {
     const generate = provider === "openai" ? generateOpenAI : generateGemini;
-    const buf = await generate(prompt, sourceImage, model, size, background, quality);
+    const buf = await generate(prompt, sourceImages, model, size, background, quality);
 
     fs.writeFileSync(output, buf);
     clearInterval(spinner);
