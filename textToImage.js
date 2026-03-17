@@ -71,7 +71,7 @@ function parseArgs(argv) {
   const prompt = positional[1];
 
   if (!output || !prompt) {
-    console.error('Usage: node generate.js <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
+    console.error('Usage: node textToImage.js <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
   }

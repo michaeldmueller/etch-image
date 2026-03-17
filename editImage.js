@@ -68,7 +68,7 @@ function parseArgs(argv) {
   }
 
   if (positional.length < 3) {
-    console.error('Usage: node edit.js <input_file> [input_file2 ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
+    console.error('Usage: node editImage.js <input_file> [input_file2 ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
   }
