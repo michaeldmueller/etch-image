@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import dotenv from "dotenv";
-import OpenAI, { toFile } from "openai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateOpenAI } from "./providers/openai.js";
+import { generateGemini } from "./providers/gemini.js";
+import { generateFlux } from "./providers/flux.js";
 
 dotenv.config();
 
@@ -14,6 +14,11 @@ const MODELS = {
   "gemini-2.5-flash-image": "gemini",
   "gemini-3-pro-image-preview": "gemini",
   "gemini-3.1-flash-image-preview": "gemini",
+  "flux-kontext-pro": "flux",
+  "flux-kontext-max": "flux",
+  "flux-2-pro": "flux",
+  "flux-2-pro-preview": "flux",
+  "flux-2-flex": "flux",
 };
 
 const DEFAULT_MODEL = "gpt-image-1.5";
@@ -21,6 +26,7 @@ const DEFAULT_MODEL = "gpt-image-1.5";
 const SIZES = {
   openai: ["1024x1024", "1536x1024", "1024x1536"],
   gemini: ["512px", "1K", "2K", "4K"],
+  flux: ["aspect ratios: 21:9 to 9:21 (via --size)"],
 };
 
 function parseArgs(argv) {
@@ -82,64 +88,6 @@ function parseArgs(argv) {
   return { output, prompt, sourceImages, provider, model, size, background, quality, open };
 }
 
-async function generateOpenAI(prompt, sourceImages, model, size, background, quality) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-  const images = await Promise.all(sourceImages.map(async (src) => {
-    const mimeType = src.endsWith(".png") ? "image/png" : "image/jpeg";
-    return toFile(fs.createReadStream(src), null, { type: mimeType });
-  }));
-
-  const image = images.length === 1 ? images[0] : images;
-  const result = await openai.images.edit({
-    model,
-    image,
-    prompt,
-    ...(size && { size }),
-    ...(background && { background }),
-    ...(quality && { quality }),
-  });
-
-  const b64 = result.data[0].b64_json;
-  return Buffer.from(b64, "base64");
-}
-
-async function generateGemini(prompt, sourceImages, model, size) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const genModel = genAI.getGenerativeModel({ model });
-
-  const imageParts = sourceImages.map((src) => {
-    const imageBuffer = fs.readFileSync(src);
-    const mimeType = src.endsWith(".png") ? "image/png" : "image/jpeg";
-    return { inlineData: { data: imageBuffer.toString("base64"), mimeType } };
-  });
-
-  const contents = [{
-    role: "user",
-    parts: [
-      ...imageParts,
-      { text: prompt },
-    ],
-  }];
-
-  const result = await genModel.generateContent({
-    contents,
-    generationConfig: {
-      responseModalities: ["IMAGE"],
-      ...(size && { imageConfig: { imageSize: size } }),
-    },
-  });
-
-  const parts = result.response.candidates[0].content.parts;
-  for (const part of parts) {
-    if (part.inlineData) {
-      return Buffer.from(part.inlineData.data, "base64");
-    }
-  }
-
-  throw new Error("Gemini returned no image data");
-}
-
 async function main() {
   const { output, prompt, sourceImages, provider, model, size, background, quality, open } = parseArgs(process.argv);
 
@@ -153,7 +101,8 @@ async function main() {
   }, 400);
 
   try {
-    const generate = provider === "openai" ? generateOpenAI : generateGemini;
+    const generators = { openai: generateOpenAI, gemini: generateGemini, flux: generateFlux };
+    const generate = generators[provider];
     const buf = await generate(prompt, sourceImages, model, size, background, quality);
 
     fs.writeFileSync(output, buf);
