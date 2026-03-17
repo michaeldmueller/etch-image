@@ -3,29 +3,15 @@ import fs from "fs";
 const BFL_API_URL = "https://api.bfl.ai/v1";
 const BFL_POLL_INTERVAL_MS = 2000;
 
-export async function generateFlux(prompt, sourceImages, model, size) {
+async function submitAndPoll(model, body) {
   const apiKey = process.env.BFL_API_KEY;
   if (!apiKey) throw new Error("BFL_API_KEY is not set");
-
-  const body = { prompt, output_format: "png" };
-
-  if (size) body.aspect_ratio = size;
-
-  const isKontext = model.startsWith("flux-kontext");
-  const maxImages = isKontext ? 4 : 8;
-  const imagesToUse = sourceImages.slice(0, maxImages);
-
-  for (let i = 0; i < imagesToUse.length; i++) {
-    const imageBuffer = fs.readFileSync(imagesToUse[i]);
-    const key = i === 0 ? "input_image" : `input_image_${i + 1}`;
-    body[key] = imageBuffer.toString("base64");
-  }
 
   const submitRes = await fetch(`${BFL_API_URL}/${model}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-key": apiKey,
+      "x-key": process.env.BFL_API_KEY,
     },
     body: JSON.stringify(body),
   });
@@ -41,7 +27,7 @@ export async function generateFlux(prompt, sourceImages, model, size) {
     await new Promise((r) => setTimeout(r, BFL_POLL_INTERVAL_MS));
 
     const pollRes = await fetch(`${BFL_API_URL}/get_result?id=${id}`, {
-      headers: { "x-key": apiKey },
+      headers: { "x-key": process.env.BFL_API_KEY },
     });
 
     const result = await pollRes.json().catch(() => null);
@@ -62,4 +48,27 @@ export async function generateFlux(prompt, sourceImages, model, size) {
 
     // "Task not found", "Pending" — keep polling
   }
+}
+
+export async function textToImageFlux(prompt, model, size) {
+  const body = { prompt, output_format: "png" };
+  if (size) body.aspect_ratio = size;
+  return submitAndPoll(model, body);
+}
+
+export async function generateFlux(prompt, sourceImages, model, size) {
+  const body = { prompt, output_format: "png" };
+  if (size) body.aspect_ratio = size;
+
+  const isKontext = model.startsWith("flux-kontext");
+  const maxImages = isKontext ? 4 : 8;
+  const imagesToUse = sourceImages.slice(0, maxImages);
+
+  for (let i = 0; i < imagesToUse.length; i++) {
+    const imageBuffer = fs.readFileSync(imagesToUse[i]);
+    const key = i === 0 ? "input_image" : `input_image_${i + 1}`;
+    body[key] = imageBuffer.toString("base64");
+  }
+
+  return submitAndPoll(model, body);
 }

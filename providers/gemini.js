@@ -1,6 +1,28 @@
 import fs from "fs";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export async function textToImageGemini(prompt, model, size) {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const genModel = genAI.getGenerativeModel({ model });
+
+  const result = await genModel.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseModalities: ["IMAGE"],
+      ...(size && { imageConfig: { imageSize: size } }),
+    },
+  });
+
+  const parts = result.response.candidates[0].content.parts;
+  for (const part of parts) {
+    if (part.inlineData) {
+      return Buffer.from(part.inlineData.data, "base64");
+    }
+  }
+
+  throw new Error("Gemini returned no image data");
+}
+
 export async function generateGemini(prompt, sourceImages, model, size) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const genModel = genAI.getGenerativeModel({ model });

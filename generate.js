@@ -1,0 +1,120 @@
+import fs from "fs";
+import path from "path";
+import { execSync } from "child_process";
+import dotenv from "dotenv";
+import { textToImageOpenAI } from "./providers/openai.js";
+import { textToImageGemini } from "./providers/gemini.js";
+import { textToImageFlux } from "./providers/flux.js";
+
+dotenv.config();
+
+const MODELS = {
+  "gpt-image-1": "openai",
+  "gpt-image-1.5": "openai",
+  "gemini-2.5-flash-image": "gemini",
+  "gemini-3-pro-image-preview": "gemini",
+  "gemini-3.1-flash-image-preview": "gemini",
+  "flux-kontext-pro": "flux",
+  "flux-kontext-max": "flux",
+  "flux-2-pro": "flux",
+  "flux-2-pro-preview": "flux",
+  "flux-2-flex": "flux",
+};
+
+const DEFAULT_MODEL = "gpt-image-1.5";
+
+const SIZES = {
+  openai: ["1024x1024", "1536x1024", "1024x1536"],
+  gemini: ["512px", "1K", "2K", "4K"],
+  flux: ["aspect ratios: 21:9 to 9:21 (via --size)"],
+};
+
+function parseArgs(argv) {
+  const args = argv.slice(2);
+  let model = null;
+  let size = null;
+  let background = null;
+  let quality = null;
+  let open = false;
+  const positional = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--model" && i + 1 < args.length) {
+      model = args[++i];
+    } else if (args[i] === "--size" && i + 1 < args.length) {
+      size = args[++i];
+    } else if (args[i] === "--background" && i + 1 < args.length) {
+      background = args[++i];
+    } else if (args[i] === "--quality" && i + 1 < args.length) {
+      quality = args[++i];
+    } else if (args[i] === "--models") {
+      console.log("Available models:\n");
+      for (const [name, provider] of Object.entries(MODELS)) {
+        const tag = name === DEFAULT_MODEL ? " (default)" : "";
+        console.log(`  ${name} [${provider}]${tag}`);
+      }
+      process.exit(0);
+    } else if (args[i] === "--sizes") {
+      console.log("Available sizes by provider:\n");
+      for (const [provider, sizes] of Object.entries(SIZES)) {
+        console.log(`  ${provider}: ${sizes.join(", ")}`);
+      }
+      process.exit(0);
+    } else if (args[i] === "--open") {
+      open = true;
+    } else {
+      positional.push(args[i]);
+    }
+  }
+
+  const output = positional[0];
+  const prompt = positional[1];
+
+  if (!output || !prompt) {
+    console.error('Usage: node generate.js <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
+    console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
+    process.exit(1);
+  }
+
+  model = model || DEFAULT_MODEL;
+  const provider = MODELS[model];
+  if (!provider) {
+    console.error(`Unknown model: ${model}`);
+    console.error(`Available models: ${Object.keys(MODELS).join(", ")}`);
+    process.exit(1);
+  }
+
+  return { output, prompt, provider, model, size, background, quality, open };
+}
+
+async function main() {
+  const { output, prompt, provider, model, size, background, quality, open } = parseArgs(process.argv);
+
+  const outputDir = path.dirname(path.resolve(output));
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const frames = ["Generating.", "Generating..", "Generating..."];
+  let i = 0;
+  const spinner = setInterval(() => {
+    process.stdout.write(`\r${frames[i++ % frames.length]}`);
+  }, 400);
+
+  try {
+    const generators = { openai: textToImageOpenAI, gemini: textToImageGemini, flux: textToImageFlux };
+    const generate = generators[provider];
+    const buf = await generate(prompt, model, size, background, quality);
+
+    fs.writeFileSync(output, buf);
+    clearInterval(spinner);
+    process.stdout.write(`\rSaved: ${output}\n`);
+    if (open) {
+      execSync(`open "${path.resolve(output)}"`);
+    }
+  } catch (err) {
+    clearInterval(spinner);
+    process.stdout.write(`\r`);
+    throw err;
+  }
+}
+
+main();
