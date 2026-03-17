@@ -1,6 +1,14 @@
 # Picasso
 
-CLI tool for generating and editing images using OpenAI, Google Gemini, and FLUX (Black Forest Labs) models.
+CLI tool for generating and editing images using AI models.
+
+## Supported Providers
+
+**OpenAI:** `gpt-image-1`, `gpt-image-1.5`
+
+**Gemini:** `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`
+
+**FLUX (Black Forest Labs):** `flux-kontext-pro`, `flux-kontext-max`, `flux-2-pro`, `flux-2-pro-preview`, `flux-2-flex`
 
 ## Setup
 
@@ -48,14 +56,6 @@ You can provide multiple input images. The last two positional arguments are alw
 | `--open` | Open the image after generation |
 | `--models` | List available models and exit |
 | `--sizes` | List available sizes by provider and exit |
-
-### Available Models
-
-**OpenAI:** `gpt-image-1`, `gpt-image-1.5`
-
-**Gemini:** `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`
-
-**FLUX (Black Forest Labs):** `flux-kontext-pro`, `flux-kontext-max`, `flux-2-pro`, `flux-2-pro-preview`, `flux-2-flex`
 
 ### Examples
 
