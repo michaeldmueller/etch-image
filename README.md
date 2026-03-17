@@ -19,8 +19,10 @@ GEMINI_API_KEY=your_key_here
 ## Usage
 
 ```bash
-node edit.js <input_file> <output_file> "prompt" [options]
+node edit.js <input_file> [input_file2 ...] <output_file> "prompt" [options]
 ```
+
+You can provide multiple input images. The last two positional arguments are always the output file and prompt, and everything before them is treated as source images.
 
 ### Options
 
@@ -61,4 +63,10 @@ Specify size and quality:
 
 ```bash
 node edit.js source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
+```
+
+Use multiple input images:
+
+```bash
+node edit.js room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
 ```
