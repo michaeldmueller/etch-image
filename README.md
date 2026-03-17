@@ -1,6 +1,6 @@
 # Picasso
 
-CLI tool for editing images using OpenAI and Google Gemini models.
+CLI tool for editing images using OpenAI, Google Gemini, and FLUX (Black Forest Labs) models.
 
 ## Setup
 
@@ -14,6 +14,7 @@ Add your API keys to `.env`:
 ```
 OPENAI_API_KEY=your_key_here
 GEMINI_API_KEY=your_key_here
+BFL_API_KEY=your_key_here
 ```
 
 ## Usage
@@ -29,7 +30,7 @@ You can provide multiple input images. The last two positional arguments are alw
 | Flag | Description |
 |------|-------------|
 | `--model <model>` | Model to use (default: `gpt-image-1.5`) |
-| `--size <size>` | Image dimensions |
+| `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`) |
 | `--quality <quality>` | Image quality (OpenAI only) |
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after generation |
@@ -42,8 +43,7 @@ You can provide multiple input images. The last two positional arguments are alw
 
 **Gemini:** `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`
 
-### Restyle Pattern
-You are a high-end designer, tasked with restyling the room in the provided picture. You may not move or resize structural elements, such as walls, doors, and windows, unless specifically asked. Generate a hyper-realistic restyling of the provided picture, using a <theme_name> theme. The furniture and decor should match the theme. The windows and doors in the image must remain in the exact same location. The size, aspect ratio, and orientation of the image should remain exactly the same.
+**FLUX (Black Forest Labs):** `flux-kontext-pro`, `flux-kontext-max`, `flux-2-pro`, `flux-2-pro-preview`, `flux-2-flex`
 
 ### Examples
 
@@ -63,6 +63,12 @@ Specify size and quality:
 
 ```bash
 node edit.js source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
+```
+
+Use a FLUX model:
+
+```bash
+node edit.js source.jpg output/edited.png "make it cyberpunk" --model flux-kontext-pro --size 16:9
 ```
 
 Use multiple input images:
