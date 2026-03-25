@@ -8,7 +8,7 @@ export async function textToImageGemini(prompt, model, size) {
   const result = await genModel.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
-      responseModalities: ["IMAGE"],
+      responseModalities: ["TEXT", "IMAGE"],
       ...(size && { imageConfig: { imageSize: size } }),
     },
   });
@@ -44,7 +44,7 @@ export async function generateGemini(prompt, sourceImages, model, size) {
   const result = await genModel.generateContent({
     contents,
     generationConfig: {
-      responseModalities: ["IMAGE"],
+      responseModalities: ["TEXT", "IMAGE"],
       ...(size && { imageConfig: { imageSize: size } }),
     },
   });

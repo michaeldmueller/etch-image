@@ -85,6 +85,12 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
+  if (size && SIZES[provider] && !SIZES[provider].includes(size)) {
+    console.error(`Invalid size "${size}" for ${provider} provider.`);
+    console.error(`Valid sizes: ${SIZES[provider].join(", ")}`);
+    process.exit(1);
+  }
+
   return { output, prompt, sourceImages, provider, model, size, background, quality, open };
 }
 
