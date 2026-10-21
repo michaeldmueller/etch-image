@@ -28,7 +28,7 @@
 npm install -g etch-image
 ```
 
-Etch is bring-your-own-token — you provide API keys for the providers you want to use. Put them in `~/.config/etch/.env`:
+Etch is bring-your-own-token. You provide API keys for the providers you want to use. Put them in `~/.config/etch/.env`:
 
 ```
 OPENAI_API_KEY=your_key_here
@@ -61,7 +61,7 @@ The last positional argument is always the prompt. Anything before it is treated
 - **No input files** → generate a new image from the prompt.
 - **One or more input files** → edit those images using the prompt.
 
-The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it out and Etch names it `etch-YYYYMMDD-HHMMSS-xxxx.png` in the current directory (or in `output_dir` from your config).
+The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it out and Etch generates a name and outputs it in the current directory (or in `output_dir` from your config).
 
 ### Options
 
