@@ -17,7 +17,7 @@
 ## Setup
 
 ```bash
-npm install -g etch-cli
+npm install -g etch-image
 ```
 
 Etch is bring-your-own-token — you provide API keys for the providers you want to use. Put them in `~/.config/etch/.env`:

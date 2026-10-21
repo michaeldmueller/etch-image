@@ -1,5 +1,5 @@
 {
-  "name": "etch-cli",
+  "name": "etch-image",
   "version": "1.0.0",
   "description": "CLI for generating and editing images with OpenAI, Gemini, and FLUX models",
   "license": "MIT",
