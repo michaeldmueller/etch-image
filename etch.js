@@ -11,16 +11,19 @@ import { textToImageOpenAI, generateOpenAI } from "./providers/openai.js";
 import { textToImageGemini, generateGemini } from "./providers/gemini.js";
 import { textToImageFlux, generateFlux } from "./providers/flux.js";
 
-// API keys come from the shell environment, then the project's .env, then ~/.etch/.env.
+// User config lives in $XDG_CONFIG_HOME/etch, or ~/.config/etch when that is unset.
+const CONFIG_DIR = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "etch");
+const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
+
+// API keys come from the shell environment, then the project's .env, then the config dir's .env.
 // dotenv never overrides a variable that is already set, so earlier sources win.
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
-dotenv.config({ path: path.join(os.homedir(), ".etch", ".env") });
+dotenv.config({ path: path.join(CONFIG_DIR, ".env") });
 
 const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open]';
 
-// Built-in defaults. Any of these can be overridden in ~/.etch/config.json,
+// Built-in defaults. Any of these can be overridden in config.json,
 // and a CLI flag overrides both.
-const CONFIG_PATH = path.join(os.homedir(), ".etch", "config.json");
 const DEFAULTS = {
   model: DEFAULT_MODEL,
   size: null,

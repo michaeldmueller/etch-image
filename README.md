@@ -30,7 +30,7 @@ GEMINI_API_KEY=your_key_here
 BFL_API_KEY=your_key_here
 ```
 
-Keys are read from the shell environment first, then the project's `.env`, then `~/.etch/.env`. The last option is handy for a global install (`npm install -g etch-cli`) where there is no project directory to keep a `.env` in.
+Keys are read from the shell environment first, then the project's `.env`, then `~/.config/etch/.env`. The last option is handy for a global install (`npm install -g etch-cli`) where there is no project directory to keep a `.env` in.
 
 ## Usage
 
@@ -62,7 +62,7 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 
 ### Configuration
 
-Any option's default can be changed in `~/.etch/config.json`. A flag on the command line always wins over the config file.
+Any option's default can be changed in `~/.config/etch/config.json` (or `$XDG_CONFIG_HOME/etch/config.json` if that variable is set). A flag on the command line always wins over the config file.
 
 ```json
 {
