@@ -14,6 +14,13 @@
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey">
 </p>
 
+## Quick Start
+```bash
+npm install -g etch-image
+etch "a polished app icon for a CLI image generation tool called etch"
+```
+You'll need an API key for the provider you want to use in `~/.config/etch/.env` See [Setup](#setup)
+
 ## Supported Providers
 
 | Provider | Models |
