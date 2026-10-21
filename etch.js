@@ -10,12 +10,12 @@ import { textToImageOpenAI, generateOpenAI } from "./providers/openai.js";
 import { textToImageGemini, generateGemini } from "./providers/gemini.js";
 import { textToImageFlux, generateFlux } from "./providers/flux.js";
 
-// API keys come from the shell environment, then the project's .env, then ~/.picasso/.env.
+// API keys come from the shell environment, then the project's .env, then ~/.etch/.env.
 // dotenv never overrides a variable that is already set, so earlier sources win.
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
-dotenv.config({ path: path.join(os.homedir(), ".picasso", ".env") });
+dotenv.config({ path: path.join(os.homedir(), ".etch", ".env") });
 
-const USAGE = 'Usage: picasso [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open]';
+const USAGE = 'Usage: etch [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open]';
 
 function parseArgs(argv) {
   const args = argv.slice(2);

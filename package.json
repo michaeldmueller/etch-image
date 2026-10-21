@@ -1,15 +1,15 @@
 {
-  "name": "picasso",
+  "name": "etch-cli",
   "version": "1.0.0",
   "description": "CLI for generating and editing images with OpenAI, Gemini, and FLUX models",
   "license": "MIT",
   "author": "Michael Mueller",
   "type": "module",
   "bin": {
-    "picasso": "./picasso.js"
+    "etch": "./etch.js"
   },
   "files": [
-    "picasso.js",
+    "etch.js",
     "models.js",
     "providers/",
     "README.md"

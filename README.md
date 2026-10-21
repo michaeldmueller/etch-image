@@ -1,4 +1,4 @@
-# Picasso
+# Etch
 
 CLI tool for generating and editing images using popular AI models.
 
@@ -12,7 +12,7 @@ CLI tool for generating and editing images using popular AI models.
 
 ## Setup
 
-Picasso is bring-your-own-token — you provide API keys for the providers you want to use. You only need keys for the providers you plan to use.
+Etch is bring-your-own-token — you provide API keys for the providers you want to use. You only need keys for the providers you plan to use.
 
 ```bash
 npm install
@@ -20,7 +20,7 @@ npm link
 cp .env.example .env
 ```
 
-`npm link` puts the `picasso` command on your PATH so you can run it from any directory. (You can also run it in place with `node picasso.js`.)
+`npm link` puts the `etch` command on your PATH so you can run it from any directory. (You can also run it in place with `node etch.js`.)
 
 Add your API keys to `.env`:
 
@@ -30,12 +30,12 @@ GEMINI_API_KEY=your_key_here
 BFL_API_KEY=your_key_here
 ```
 
-Keys are read from the shell environment first, then the project's `.env`, then `~/.picasso/.env`. The last option is handy for a global install (`npm install -g github:michaeldmueller/Picasso`) where there is no project directory to keep a `.env` in.
+Keys are read from the shell environment first, then the project's `.env`, then `~/.etch/.env`. The last option is handy for a global install (`npm install -g etch-cli`) where there is no project directory to keep a `.env` in.
 
 ## Usage
 
 ```bash
-picasso [input_file ...] <output_file> "prompt" [options]
+etch [input_file ...] <output_file> "prompt" [options]
 ```
 
 The last two positional arguments are always the output file and the prompt. Anything before them is treated as an input image:
@@ -60,41 +60,41 @@ The last two positional arguments are always the output file and the prompt. Any
 Generate an image from a prompt:
 
 ```bash
-picasso output/sunset.png "a dramatic sunset over the ocean" --open
+etch output/sunset.png "a dramatic sunset over the ocean" --open
 ```
 
 Edit an image:
 
 ```bash
-picasso source.png output/edited.png "make the sky purple" --open
+etch source.png output/edited.png "make the sky purple" --open
 ```
 
 Use a specific model:
 
 ```bash
-picasso source.png output/edited.png "make the sky purple" --model gemini-2.5-flash-image
+etch source.png output/edited.png "make the sky purple" --model gemini-2.5-flash-image
 ```
 
 Specify size and quality:
 
 ```bash
-picasso source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
+etch source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
 ```
 
 Generate a 4K widescreen image with the top quality setting (`gpt-image-2.5` models only):
 
 ```bash
-picasso output/skyline.png "a city skyline at dusk" --size 3840x2160 --quality max
+etch output/skyline.png "a city skyline at dusk" --size 3840x2160 --quality max
 ```
 
 Use a FLUX model:
 
 ```bash
-picasso output/city.png "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
+etch output/city.png "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
 ```
 
 Use multiple input images:
 
 ```bash
-picasso room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
+etch room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
 ```
