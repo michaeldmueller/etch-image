@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/michaeldmueller/etch-cli/main/assets/etch.png" alt="Etch" width="200">
+  <img src="https://raw.githubusercontent.com/michaeldmueller/etch-image/main/assets/etch.png" alt="Etch" width="200">
 </p>
 
 <h1 align="center">Etch</h1>
@@ -41,8 +41,8 @@ You only need keys for the providers you plan to use. Keys are read from the she
 ### Running from a clone
 
 ```bash
-git clone https://github.com/michaeldmueller/etch-cli.git
-cd etch-cli
+git clone https://github.com/michaeldmueller/etch-image.git
+cd etch-image
 npm install
 npm link
 cp .env.example .env
