@@ -20,7 +20,27 @@ const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
 dotenv.config({ path: path.join(CONFIG_DIR, ".env") });
 
-const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open]';
+const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open] [--json]';
+
+// Exit codes: 1 usage or config error, 2 provider/API error, 3 request refused by content moderation.
+const EXIT = { usage: 1, api: 2, moderation: 3 };
+
+let jsonMode = false;
+
+// Prints an error (as JSON when --json is set) and exits with the matching code.
+function fail(message, code = "usage") {
+  if (jsonMode) {
+    console.error(JSON.stringify({ error: message, code }));
+  } else {
+    console.error(message);
+  }
+  process.exit(EXIT[code]);
+}
+
+function classifyError(err) {
+  const text = `${err?.code ?? ""} ${err?.message ?? ""}`;
+  return /moderat|safety|blocked|prohibited/i.test(text) ? "moderation" : "api";
+}
 
 // Built-in defaults. Any of these can be overridden in config.json,
 // and a CLI flag overrides both.
@@ -46,19 +66,15 @@ function loadConfig() {
   try {
     config = JSON.parse(raw);
   } catch (err) {
-    console.error(`Invalid JSON in ${CONFIG_PATH}: ${err.message}`);
-    process.exit(1);
+    fail(`Invalid JSON in ${CONFIG_PATH}: ${err.message}`);
   }
 
   const unknown = Object.keys(config).filter((key) => !(key in DEFAULTS));
   if (unknown.length > 0) {
-    console.error(`Unknown setting${unknown.length > 1 ? "s" : ""} in ${CONFIG_PATH}: ${unknown.join(", ")}`);
-    console.error(`Valid settings: ${Object.keys(DEFAULTS).join(", ")}`);
-    process.exit(1);
+    fail(`Unknown setting${unknown.length > 1 ? "s" : ""} in ${CONFIG_PATH}: ${unknown.join(", ")}\nValid settings: ${Object.keys(DEFAULTS).join(", ")}`);
   }
   if ("open" in config && typeof config.open !== "boolean") {
-    console.error(`Invalid value for "open" in ${CONFIG_PATH}: expected true or false`);
-    process.exit(1);
+    fail(`Invalid value for "open" in ${CONFIG_PATH}: expected true or false`);
   }
   return config;
 }
@@ -97,6 +113,7 @@ function openFile(file) {
 
 function parseArgs(argv) {
   const args = argv.slice(2);
+  jsonMode = args.includes("--json");
   const settings = { ...DEFAULTS, ...loadConfig() };
   let { model, size, background, quality, output_dir: outputDir } = settings;
   let open = null; // null until a flag sets it; resolved below
@@ -124,6 +141,8 @@ function parseArgs(argv) {
       open = true;
     } else if (args[i] === "--dont-open") {
       open = false;
+    } else if (args[i] === "--json") {
+      // handled above
     } else if (args[i] === "--config") {
       printConfig(settings);
       process.exit(0);
@@ -131,17 +150,14 @@ function parseArgs(argv) {
       console.log(USAGE);
       process.exit(0);
     } else if (args[i].startsWith("-") && args[i].length > 1) {
-      console.error(`Unknown option: ${args[i]}\n${USAGE}`);
-      process.exit(1);
+      fail(`Unknown option: ${args[i]}\n${USAGE}`);
     } else {
       positional.push(args[i]);
     }
   }
 
   if (positional.length < 1) {
-    console.error(USAGE);
-    console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
-    process.exit(1);
+    fail(`${USAGE}\n\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
   }
 
   const prompt = positional[positional.length - 1];
@@ -158,33 +174,24 @@ function parseArgs(argv) {
 
   for (const src of sourceImages) {
     if (!fs.existsSync(src)) {
-      console.error(`Input file not found: ${src}`);
-      process.exit(1);
+      fail(`Input file not found: ${src}`);
     }
   }
 
   model = model || DEFAULT_MODEL;
   const provider = MODELS[model];
   if (!provider) {
-    console.error(`Unknown model: ${model}`);
-    console.error(`Available models: ${Object.keys(MODELS).join(", ")}`);
-    process.exit(1);
+    fail(`Unknown model: ${model}\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
   }
 
   const sizeError = size && validateSize(model, size);
-  if (sizeError) {
-    console.error(sizeError);
-    process.exit(1);
-  }
+  if (sizeError) fail(sizeError);
 
   const qualityError = quality && validateQuality(model, quality);
-  if (qualityError) {
-    console.error(qualityError);
-    process.exit(1);
-  }
+  if (qualityError) fail(qualityError);
 
   // Without an explicit flag, open only when the configured default says so and a person is watching.
-  if (open === null) open = settings.open && Boolean(process.stdout.isTTY);
+  if (open === null) open = settings.open && Boolean(process.stdout.isTTY) && !jsonMode;
 
   return { output, prompt, sourceImages, provider, model, size, background, quality, open };
 }
@@ -207,7 +214,7 @@ async function main() {
   const verb = isEdit ? "Editing" : "Generating";
   const frames = [`${verb}.`, `${verb}..`, `${verb}...`];
   let i = 0;
-  const spinner = process.stderr.isTTY
+  const spinner = process.stderr.isTTY && !jsonMode
     ? setInterval(() => process.stderr.write(`\r${frames[i++ % frames.length]}`), 400)
     : null;
   const clearSpinner = () => {
@@ -217,13 +224,34 @@ async function main() {
     }
   };
 
+  const started = Date.now();
+  let buf;
   try {
-    const buf = isEdit
+    buf = isEdit
       ? await GENERATORS[provider].edit(prompt, sourceImages, model, size, background, quality)
       : await GENERATORS[provider].create(prompt, model, size, background, quality);
-
-    fs.writeFileSync(output, buf);
+  } catch (err) {
     clearSpinner();
+    fail(err?.message ?? String(err), classifyError(err));
+  }
+  const elapsedMs = Date.now() - started;
+
+  fs.writeFileSync(output, buf);
+  clearSpinner();
+
+  if (jsonMode) {
+    console.log(JSON.stringify({
+      path: path.resolve(output),
+      mode: isEdit ? "edit" : "generate",
+      provider,
+      model,
+      size,
+      quality,
+      background,
+      inputs: sourceImages.map((src) => path.resolve(src)),
+      elapsed_ms: elapsedMs,
+    }));
+  } else {
     console.log(process.stdout.isTTY ? `Saved: ${output}` : output);
     const details = [
       ["Provider", provider],
@@ -236,12 +264,10 @@ async function main() {
     for (const [label, value] of details) {
       if (value) console.error(`  ${label}: ${value}`);
     }
-    if (open) {
-      openFile(path.resolve(output));
-    }
-  } catch (err) {
-    clearSpinner();
-    throw err;
+  }
+
+  if (open) {
+    openFile(path.resolve(output));
   }
 }
 

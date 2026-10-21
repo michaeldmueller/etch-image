@@ -74,6 +74,7 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after it is saved (default when run from a terminal) |
 | `--dont-open` | Don't open the image after it is saved |
+| `--json` | Print the result as a JSON object instead of text |
 | `--models` | List available models and exit |
 | `--sizes` | List available sizes by provider and exit |
 | `--config` | Show the config file path and effective defaults, then exit |
@@ -103,6 +104,25 @@ etch "a red cube" | xargs open
 ```
 
 Pass `--open` to open the image anyway.
+
+With `--json`, stdout is a single JSON object and errors on stderr are JSON too:
+
+```bash
+etch --json "a red cube" | jq -r .path
+```
+
+```json
+{"path":"/Users/you/etch-20261021-143210-k8v1.png","mode":"generate","provider":"openai","model":"gpt-image-2.5-sunburst","size":null,"quality":null,"background":null,"inputs":[],"elapsed_ms":11840}
+```
+
+Exit codes:
+
+| Code | Meaning |
+|------|---------|
+| `0` | Image saved |
+| `1` | Usage or config error (bad flag, invalid size, missing input file) |
+| `2` | Provider error (bad API key, network, server error) |
+| `3` | Request refused by the provider's content moderation |
 
 ### Examples
 
