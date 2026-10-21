@@ -1,6 +1,10 @@
-# Etch
+<p align="center">
+  <img src="https://raw.githubusercontent.com/michaeldmueller/etch-cli/main/assets/etch.png" alt="Etch" width="200">
+</p>
 
-CLI tool for generating and editing images using popular AI models.
+<h1 align="center">Etch</h1>
+
+<p align="center">CLI tool for generating and editing images using popular AI models.</p>
 
 ## Supported Providers
 
