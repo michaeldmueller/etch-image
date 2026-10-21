@@ -20,7 +20,7 @@
 |----------|--------|
 | OpenAI | <ul><li>gpt-image-2.5-sunburst</li><li>gpt-image-2.5-flare</li><li>gpt-image-2</li><li>gpt-image-1.5</li><li>gpt-image-1</li><li>gpt-image-1-mini</li></ul> |
 | Gemini | <ul><li>gemini-nano-banana-2.1</li><li>gemini-3.1-flash-image</li><li>gemini-3.1-flash-lite-image</li><li>gemini-3-pro-image</li><li>gemini-2.5-flash-image</li></ul> |
-| FLUX (Black Forest Labs) | <ul><li>flux-kontext-pro</li><li>flux-kontext-max</li><li>flux-2-pro</li><li>flux-2-pro-preview</li><li>flux-2-flex</li></ul> |
+| FLUX (Black Forest Labs) | <ul><li>flux-3-image</li><li>flux-3-image-klein</li><li>flux-2-pro</li><li>flux-2-max</li><li>flux-2-flex</li><li>flux-2-klein-9b</li><li>flux-2-klein-4b</li><li>flux-2-pro-preview</li><li>flux-kontext-pro</li><li>flux-kontext-max</li><li>flux-pro-1.1</li><li>flux-pro-1.1-ultra</li><li>flux-dev</li></ul> |
 
 ## Setup
 
@@ -69,8 +69,8 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 |------|-------------|
 | `-o, --output <path>` | Where to save the image (default: auto-named PNG in the current directory) |
 | `--model <model>` | Model to use (default: `gpt-image-2.5-sunburst`) |
-| `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`). OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`). Gemini: `1K`, `2K`, `4K` (`gemini-3.1-flash-image` also `512px`; `gemini-3.1-flash-lite-image` only `1K`) |
-| `--quality <quality>` | Image quality (OpenAI only): `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max` |
+| `--size <size>` | OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`). Gemini: `1K`, `2K`, `4K` (`gemini-3.1-flash-image` also `512px`; `gemini-3.1-flash-lite-image` only `1K`). FLUX: an aspect ratio like `16:9` (21:9 to 9:21; `flux-3` models take a fixed list, see `--sizes`), or `WIDTHxHEIGHT` for FLUX 2, 1.1 and dev. A ratio is converted to about 1 megapixel for models that take dimensions |
+| `--quality <quality>` | OpenAI: `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max`. FLUX 3: resolution tier `768sq`, `1k`, `1.5k`, `2k`, `4k` |
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after it is saved (default) |
 | `--dont-open` | Don't open the image after it is saved |
@@ -135,6 +135,12 @@ Use a FLUX model:
 
 ```bash
 etch "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
+```
+
+Generate a 4K image with FLUX 3:
+
+```bash
+etch "cyberpunk cityscape at night" --model flux-3-image --size 21:9 --quality 4k
 ```
 
 Use multiple input images:
