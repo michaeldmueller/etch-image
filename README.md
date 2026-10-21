@@ -4,7 +4,7 @@
 
 <h1 align="center">Etch</h1>
 
-<p align="center">CLI tool for generating and editing images using popular AI models.</p>
+<p align="center">Scriptable CLI tool for generating and editing images with OpenAI, Gemini, and FLUX.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/etch-image"><img alt="npm version" src="https://img.shields.io/npm/v/etch-image"></a>
