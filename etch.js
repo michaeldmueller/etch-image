@@ -68,7 +68,11 @@ function printConfig(settings) {
 
 function openFile(file) {
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? 'start ""' : "xdg-open";
-  execSync(`${cmd} "${file}"`);
+  try {
+    execSync(`${cmd} "${file}"`, { stdio: "ignore" });
+  } catch {
+    console.error(`Warning: could not open ${file} with ${cmd.split(" ")[0]}. Use --dont-open or set "open": false in ${CONFIG_PATH} to skip this.`);
+  }
 }
 
 function parseArgs(argv) {
