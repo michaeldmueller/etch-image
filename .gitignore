@@ -16,3 +16,6 @@ output
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
 Icon?
+
+# generated images
+etch-*.png

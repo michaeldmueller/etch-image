@@ -12,17 +12,11 @@ CLI tool for generating and editing images using popular AI models.
 
 ## Setup
 
-Etch is bring-your-own-token — you provide API keys for the providers you want to use. You only need keys for the providers you plan to use.
-
 ```bash
-npm install
-npm link
-cp .env.example .env
+npm install -g etch-cli
 ```
 
-`npm link` puts the `etch` command on your PATH so you can run it from any directory. (You can also run it in place with `node etch.js`.)
-
-Add your API keys to `.env`:
+Etch is bring-your-own-token — you provide API keys for the providers you want to use. Put them in `~/.config/etch/.env`:
 
 ```
 OPENAI_API_KEY=your_key_here
@@ -30,7 +24,19 @@ GEMINI_API_KEY=your_key_here
 BFL_API_KEY=your_key_here
 ```
 
-Keys are read from the shell environment first, then the project's `.env`, then `~/.config/etch/.env`. The last option is handy for a global install (`npm install -g etch-cli`) where there is no project directory to keep a `.env` in.
+You only need keys for the providers you plan to use. Keys are read from the shell environment first, then `~/.config/etch/.env`.
+
+### Running from a clone
+
+```bash
+git clone https://github.com/michaeldmueller/etch-cli.git
+cd etch-cli
+npm install
+npm link
+cp .env.example .env
+```
+
+`npm link` puts the `etch` command on your PATH. A `.env` in the project directory is read before `~/.config/etch/.env`.
 
 ## Usage
 
