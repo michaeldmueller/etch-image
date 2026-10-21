@@ -3,14 +3,17 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import dotenv from "dotenv";
+import os from "os";
 import { fileURLToPath } from "url";
 import { MODELS, DEFAULT_MODEL, validateSize, validateQuality, printModels, printSizes } from "./models.js";
 import { textToImageOpenAI, generateOpenAI } from "./providers/openai.js";
 import { textToImageGemini, generateGemini } from "./providers/gemini.js";
 import { textToImageFlux, generateFlux } from "./providers/flux.js";
 
-// Load .env from the project directory so the command works from anywhere.
+// API keys come from the shell environment, then the project's .env, then ~/.picasso/.env.
+// dotenv never overrides a variable that is already set, so earlier sources win.
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
+dotenv.config({ path: path.join(os.homedir(), ".picasso", ".env") });
 
 const USAGE = 'Usage: picasso [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open]';
 

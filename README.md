@@ -30,6 +30,8 @@ GEMINI_API_KEY=your_key_here
 BFL_API_KEY=your_key_here
 ```
 
+Keys are read from the shell environment first, then the project's `.env`, then `~/.picasso/.env`. The last option is handy for a global install (`npm install -g github:michaeldmueller/Picasso`) where there is no project directory to keep a `.env` in.
+
 ## Usage
 
 ```bash
