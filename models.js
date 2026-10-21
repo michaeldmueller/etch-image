@@ -5,9 +5,11 @@ export const MODELS = {
   "gpt-image-1.5": "openai",
   "gpt-image-1": "openai",
   "gpt-image-1-mini": "openai",
+  "gemini-nano-banana-2.1": "gemini",
+  "gemini-3.1-flash-image": "gemini",
+  "gemini-3.1-flash-lite-image": "gemini",
+  "gemini-3-pro-image": "gemini",
   "gemini-2.5-flash-image": "gemini",
-  "gemini-3-pro-image-preview": "gemini",
-  "gemini-3.1-flash-image-preview": "gemini",
   "flux-kontext-pro": "flux",
   "flux-kontext-max": "flux",
   "flux-2-pro": "flux",
@@ -36,8 +38,17 @@ export const SIZES = {
   flux: ["aspect ratio W:H (e.g. 16:9)"],
 };
 
+// Gemini models differ in which sizes they accept. Models not listed here take no size.
+const GEMINI_SIZES = {
+  "gemini-nano-banana-2.1": ["1K", "2K", "4K"],
+  "gemini-3.1-flash-image": ["512px", "1K", "2K", "4K"],
+  "gemini-3.1-flash-lite-image": ["1K"],
+  "gemini-3-pro-image": ["1K", "2K", "4K"],
+};
+
 export const SIZE_NOTES = {
   openai: "gpt-image-2 and later also accept any WIDTHxHEIGHT (multiples of 16, aspect ratio 1:3 to 3:1, up to 3840x2160)",
+  gemini: "varies by model; gemini-2.5-flash-image takes no size",
   flux: "21:9 to 9:21",
 };
 
@@ -73,8 +84,12 @@ function isValidFluxAspectRatio(size) {
 // Returns an error message, or null if the size is valid for the model.
 export function validateSize(model, size) {
   const provider = MODELS[model];
-  const sizes = SIZES[provider];
+  const sizes = provider === "gemini" ? GEMINI_SIZES[model] || [] : SIZES[provider];
   if (!sizes) return null;
+
+  if (provider === "gemini" && sizes.length === 0) {
+    return `${model} does not accept a size.`;
+  }
 
   if (provider === "flux") {
     if (isValidFluxAspectRatio(size)) return null;

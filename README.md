@@ -19,7 +19,7 @@
 | Provider | Models |
 |----------|--------|
 | OpenAI | <ul><li>gpt-image-2.5-sunburst</li><li>gpt-image-2.5-flare</li><li>gpt-image-2</li><li>gpt-image-1.5</li><li>gpt-image-1</li><li>gpt-image-1-mini</li></ul> |
-| Gemini | <ul><li>gemini-2.5-flash-image</li><li>gemini-3-pro-image-preview</li><li>gemini-3.1-flash-image-preview</li></ul> |
+| Gemini | <ul><li>gemini-nano-banana-2.1</li><li>gemini-3.1-flash-image</li><li>gemini-3.1-flash-lite-image</li><li>gemini-3-pro-image</li><li>gemini-2.5-flash-image</li></ul> |
 | FLUX (Black Forest Labs) | <ul><li>flux-kontext-pro</li><li>flux-kontext-max</li><li>flux-2-pro</li><li>flux-2-pro-preview</li><li>flux-2-flex</li></ul> |
 
 ## Setup
@@ -69,7 +69,7 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 |------|-------------|
 | `-o, --output <path>` | Where to save the image (default: auto-named PNG in the current directory) |
 | `--model <model>` | Model to use (default: `gpt-image-2.5-sunburst`) |
-| `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`). OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`) |
+| `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`). OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`). Gemini: `1K`, `2K`, `4K` (`gemini-3.1-flash-image` also `512px`; `gemini-3.1-flash-lite-image` only `1K`) |
 | `--quality <quality>` | Image quality (OpenAI only): `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max` |
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after it is saved (default) |
@@ -116,7 +116,7 @@ etch source.png "make the sky purple"
 Use a specific model:
 
 ```bash
-etch source.png "make the sky purple" --model gemini-2.5-flash-image
+etch source.png "make the sky purple" --model gemini-nano-banana-2.1
 ```
 
 Specify size and quality:
