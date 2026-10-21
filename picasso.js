@@ -1,13 +1,18 @@
+#!/usr/bin/env node
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 import { MODELS, DEFAULT_MODEL, validateSize, validateQuality, printModels, printSizes } from "./models.js";
-import { textToImageOpenAI } from "./providers/openai.js";
-import { textToImageGemini } from "./providers/gemini.js";
-import { textToImageFlux } from "./providers/flux.js";
+import { textToImageOpenAI, generateOpenAI } from "./providers/openai.js";
+import { textToImageGemini, generateGemini } from "./providers/gemini.js";
+import { textToImageFlux, generateFlux } from "./providers/flux.js";
 
-dotenv.config();
+// Load .env from the project directory so the command works from anywhere.
+dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
+
+const USAGE = 'Usage: picasso [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open]';
 
 function parseArgs(argv) {
   const args = argv.slice(2);
@@ -35,18 +40,32 @@ function parseArgs(argv) {
       process.exit(0);
     } else if (args[i] === "--open") {
       open = true;
+    } else if (args[i] === "--help" || args[i] === "-h") {
+      console.log(USAGE);
+      process.exit(0);
+    } else if (args[i].startsWith("--")) {
+      console.error(`Unknown option: ${args[i]}\n${USAGE}`);
+      process.exit(1);
     } else {
       positional.push(args[i]);
     }
   }
 
-  const output = positional[0];
-  const prompt = positional[1];
-
-  if (!output || !prompt) {
-    console.error('Usage: node textToImage.js <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--open]');
+  if (positional.length < 2) {
+    console.error(USAGE);
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
+  }
+
+  const prompt = positional[positional.length - 1];
+  const output = positional[positional.length - 2];
+  const sourceImages = positional.slice(0, -2);
+
+  for (const src of sourceImages) {
+    if (!fs.existsSync(src)) {
+      console.error(`Input file not found: ${src}`);
+      process.exit(1);
+    }
   }
 
   model = model || DEFAULT_MODEL;
@@ -69,25 +88,33 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  return { output, prompt, provider, model, size, background, quality, open };
+  return { output, prompt, sourceImages, provider, model, size, background, quality, open };
 }
 
+const GENERATORS = {
+  openai: { create: textToImageOpenAI, edit: generateOpenAI },
+  gemini: { create: textToImageGemini, edit: generateGemini },
+  flux: { create: textToImageFlux, edit: generateFlux },
+};
+
 async function main() {
-  const { output, prompt, provider, model, size, background, quality, open } = parseArgs(process.argv);
+  const { output, prompt, sourceImages, provider, model, size, background, quality, open } = parseArgs(process.argv);
 
   const outputDir = path.dirname(path.resolve(output));
   fs.mkdirSync(outputDir, { recursive: true });
 
-  const frames = ["Generating.", "Generating..", "Generating..."];
+  const isEdit = sourceImages.length > 0;
+  const verb = isEdit ? "Editing" : "Generating";
+  const frames = [`${verb}.`, `${verb}..`, `${verb}...`];
   let i = 0;
   const spinner = setInterval(() => {
     process.stdout.write(`\r${frames[i++ % frames.length]}`);
   }, 400);
 
   try {
-    const generators = { openai: textToImageOpenAI, gemini: textToImageGemini, flux: textToImageFlux };
-    const generate = generators[provider];
-    const buf = await generate(prompt, model, size, background, quality);
+    const buf = isEdit
+      ? await GENERATORS[provider].edit(prompt, sourceImages, model, size, background, quality)
+      : await GENERATORS[provider].create(prompt, model, size, background, quality);
 
     fs.writeFileSync(output, buf);
     clearInterval(spinner);

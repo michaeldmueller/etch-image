@@ -16,8 +16,11 @@ Picasso is bring-your-own-token — you provide API keys for the providers you w
 
 ```bash
 npm install
+npm link
 cp .env.example .env
 ```
+
+`npm link` puts the `picasso` command on your PATH so you can run it from any directory. (You can also run it in place with `node picasso.js`.)
 
 Add your API keys to `.env`:
 
@@ -29,23 +32,14 @@ BFL_API_KEY=your_key_here
 
 ## Usage
 
-### Text to Image
-
-Generate an image from a text prompt:
-
 ```bash
-node textToImage.js <output_file> "prompt" [options]
+picasso [input_file ...] <output_file> "prompt" [options]
 ```
 
-### Edit Image
+The last two positional arguments are always the output file and the prompt. Anything before them is treated as an input image:
 
-Edit one or more existing images using a text prompt:
-
-```bash
-node editImage.js <input_file> [input_file2 ...] <output_file> "prompt" [options]
-```
-
-You can provide multiple input images. The last two positional arguments are always the output file and prompt, and everything before them is treated as source images.
+- **No input files** → generate a new image from the prompt.
+- **One or more input files** → edit those images using the prompt.
 
 ### Options
 
@@ -64,41 +58,41 @@ You can provide multiple input images. The last two positional arguments are alw
 Generate an image from a prompt:
 
 ```bash
-node textToImage.js output/sunset.png "a dramatic sunset over the ocean" --open
+picasso output/sunset.png "a dramatic sunset over the ocean" --open
 ```
 
 Edit an image:
 
 ```bash
-node editImage.js source.png output/edited.png "make the sky purple" --open
+picasso source.png output/edited.png "make the sky purple" --open
 ```
 
 Use a specific model:
 
 ```bash
-node editImage.js source.png output/edited.png "make the sky purple" --model gemini-2.5-flash-image
+picasso source.png output/edited.png "make the sky purple" --model gemini-2.5-flash-image
 ```
 
 Specify size and quality:
 
 ```bash
-node editImage.js source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
+picasso source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
 ```
 
 Generate a 4K widescreen image with the top quality setting (`gpt-image-2.5` models only):
 
 ```bash
-node textToImage.js output/skyline.png "a city skyline at dusk" --size 3840x2160 --quality max
+picasso output/skyline.png "a city skyline at dusk" --size 3840x2160 --quality max
 ```
 
 Use a FLUX model:
 
 ```bash
-node textToImage.js output/city.png "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
+picasso output/city.png "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
 ```
 
 Use multiple input images:
 
 ```bash
-node editImage.js room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
+picasso room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
 ```
