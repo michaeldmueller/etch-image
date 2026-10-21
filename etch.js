@@ -20,7 +20,7 @@ const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
 dotenv.config({ path: path.join(CONFIG_DIR, ".env") });
 
-const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open] [--json]';
+const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open] [--json] [--force]';
 
 // Exit codes: 1 usage or config error, 2 provider/API error, 3 request refused by content moderation.
 const EXIT = { usage: 1, api: 2, moderation: 3 };
@@ -118,6 +118,7 @@ function parseArgs(argv) {
   let { model, size, background, quality, output_dir: outputDir } = settings;
   let open = null; // null until a flag sets it; resolved below
   let output = null;
+  let force = false;
   const positional = [];
 
   for (let i = 0; i < args.length; i++) {
@@ -143,6 +144,8 @@ function parseArgs(argv) {
       open = false;
     } else if (args[i] === "--json") {
       // handled above
+    } else if (args[i] === "--force") {
+      force = true;
     } else if (args[i] === "--config") {
       printConfig(settings);
       process.exit(0);
@@ -167,6 +170,9 @@ function parseArgs(argv) {
     const ext = path.extname(output).toLowerCase();
     if (ext && ext !== ".png") {
       console.error(`Warning: images are saved as PNG regardless of the extension (${output}).`);
+    }
+    if (fs.existsSync(output) && !force) {
+      fail(`Output file already exists: ${output}\nPass --force to overwrite it.`);
     }
   } else {
     output = defaultOutputPath(outputDir);
