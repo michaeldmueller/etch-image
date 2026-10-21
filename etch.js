@@ -5,6 +5,7 @@ import { execSync } from "child_process";
 import dotenv from "dotenv";
 import os from "os";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 import { MODELS, DEFAULT_MODEL, validateSize, validateQuality, printModels, printSizes } from "./models.js";
 import { textToImageOpenAI, generateOpenAI } from "./providers/openai.js";
 import { textToImageGemini, generateGemini } from "./providers/gemini.js";
@@ -15,7 +16,7 @@ import { textToImageFlux, generateFlux } from "./providers/flux.js";
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
 dotenv.config({ path: path.join(os.homedir(), ".etch", ".env") });
 
-const USAGE = 'Usage: etch [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open]';
+const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open]';
 
 // Built-in defaults. Any of these can be overridden in ~/.etch/config.json,
 // and a CLI flag overrides both.
@@ -26,6 +27,7 @@ const DEFAULTS = {
   quality: null,
   background: null,
   open: true,
+  output_dir: null,
 };
 
 function loadConfig() {
@@ -58,11 +60,26 @@ function loadConfig() {
   return config;
 }
 
+function expandHome(p) {
+  return p === "~" || p.startsWith("~/") ? path.join(os.homedir(), p.slice(1)) : p;
+}
+
+// Auto-generated names sort chronologically; the random suffix avoids collisions within a second.
+function defaultOutputPath(outputDir) {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const id = Array.from({ length: 4 }, () => alphabet[crypto.randomInt(alphabet.length)]).join("");
+  return path.join(outputDir ? expandHome(outputDir) : process.cwd(), `etch-${stamp}-${id}.png`);
+}
+
 function printConfig(settings) {
   console.log(`Config file: ${CONFIG_PATH}${fs.existsSync(CONFIG_PATH) ? "" : " (not found)"}\n`);
   console.log("Effective defaults:\n");
   for (const [key, value] of Object.entries(settings)) {
-    console.log(`  ${key}: ${value === null ? "(provider default)" : value}`);
+    const shown = value !== null ? value : key === "output_dir" ? "(current directory)" : "(provider default)";
+    console.log(`  ${key}: ${shown}`);
   }
 }
 
@@ -78,11 +95,14 @@ function openFile(file) {
 function parseArgs(argv) {
   const args = argv.slice(2);
   const settings = { ...DEFAULTS, ...loadConfig() };
-  let { model, size, background, quality, open } = settings;
+  let { model, size, background, quality, open, output_dir: outputDir } = settings;
+  let output = null;
   const positional = [];
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--model" && i + 1 < args.length) {
+    if ((args[i] === "--output" || args[i] === "-o") && i + 1 < args.length) {
+      output = args[++i];
+    } else if (args[i] === "--model" && i + 1 < args.length) {
       model = args[++i];
     } else if (args[i] === "--size" && i + 1 < args.length) {
       size = args[++i];
@@ -106,7 +126,7 @@ function parseArgs(argv) {
     } else if (args[i] === "--help" || args[i] === "-h") {
       console.log(USAGE);
       process.exit(0);
-    } else if (args[i].startsWith("--")) {
+    } else if (args[i].startsWith("-") && args[i].length > 1) {
       console.error(`Unknown option: ${args[i]}\n${USAGE}`);
       process.exit(1);
     } else {
@@ -114,15 +134,23 @@ function parseArgs(argv) {
     }
   }
 
-  if (positional.length < 2) {
+  if (positional.length < 1) {
     console.error(USAGE);
     console.error(`\nAvailable models: ${Object.keys(MODELS).join(", ")}`);
     process.exit(1);
   }
 
   const prompt = positional[positional.length - 1];
-  const output = positional[positional.length - 2];
-  const sourceImages = positional.slice(0, -2);
+  const sourceImages = positional.slice(0, -1);
+
+  if (output) {
+    const ext = path.extname(output).toLowerCase();
+    if (ext && ext !== ".png") {
+      console.error(`Warning: images are saved as PNG regardless of the extension (${output}).`);
+    }
+  } else {
+    output = defaultOutputPath(outputDir);
+  }
 
   for (const src of sourceImages) {
     if (!fs.existsSync(src)) {

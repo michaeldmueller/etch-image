@@ -35,18 +35,21 @@ Keys are read from the shell environment first, then the project's `.env`, then 
 ## Usage
 
 ```bash
-etch [input_file ...] <output_file> "prompt" [options]
+etch [input_file ...] "prompt" [options]
 ```
 
-The last two positional arguments are always the output file and the prompt. Anything before them is treated as an input image:
+The last positional argument is always the prompt. Anything before it is treated as an input image:
 
 - **No input files** → generate a new image from the prompt.
 - **One or more input files** → edit those images using the prompt.
+
+The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it out and Etch names it `etch-YYYYMMDD-HHMMSS-xxxx.png` in the current directory (or in `output_dir` from your config).
 
 ### Options
 
 | Flag | Description |
 |------|-------------|
+| `-o, --output <path>` | Where to save the image (default: auto-named PNG in the current directory) |
 | `--model <model>` | Model to use (default: `gpt-image-2.5-sunburst`) |
 | `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`). OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`) |
 | `--quality <quality>` | Image quality (OpenAI only): `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max` |
@@ -65,58 +68,65 @@ Any option's default can be changed in `~/.etch/config.json`. A flag on the comm
 {
   "open": false,
   "model": "gpt-image-2.5-flare",
-  "quality": "high"
+  "quality": "high",
+  "output_dir": "~/Pictures/etch"
 }
 ```
 
-Supported settings: `model`, `size`, `quality`, `background`, `open`. Run `etch --config` to see the effective defaults.
+Supported settings: `model`, `size`, `quality`, `background`, `open`, `output_dir`. The `output_dir` setting only applies when `-o` is not given. Run `etch --config` to see the effective defaults.
 
 ### Examples
 
 Generate an image from a prompt:
 
 ```bash
-etch output/sunset.png "a dramatic sunset over the ocean"
+etch "a dramatic sunset over the ocean"
+```
+
+Save to a specific file:
+
+```bash
+etch "a dramatic sunset over the ocean" -o output/sunset.png
 ```
 
 Edit an image:
 
 ```bash
-etch source.png output/edited.png "make the sky purple"
+etch source.png "make the sky purple"
 ```
 
 Use a specific model:
 
 ```bash
-etch source.png output/edited.png "make the sky purple" --model gemini-2.5-flash-image
+etch source.png "make the sky purple" --model gemini-2.5-flash-image
 ```
 
 Specify size and quality:
 
 ```bash
-etch source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
+etch source.png "add a sunset" --size 1536x1024 --quality high
 ```
 
 Generate a 4K widescreen image with the top quality setting (`gpt-image-2.5` models only):
 
 ```bash
-etch output/skyline.png "a city skyline at dusk" --size 3840x2160 --quality max
+etch "a city skyline at dusk" --size 3840x2160 --quality max -o output/skyline.png
 ```
 
 Use a FLUX model:
 
 ```bash
-etch output/city.png "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
+etch "cyberpunk cityscape at night" --model flux-2-pro --size 16:9
 ```
 
 Use multiple input images:
 
 ```bash
-etch room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
+etch room.jpg reference.jpg "restyle the first room to match the second" -o output/restyled.png
 ```
 
 Save without opening the result:
 
 ```bash
-etch output/icon.png "a minimal app icon" --dont-open
+etch "a minimal app icon" --dont-open
 ```
