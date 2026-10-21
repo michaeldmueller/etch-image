@@ -6,6 +6,14 @@
 
 <p align="center">CLI tool for generating and editing images using popular AI models.</p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/etch-image"><img alt="npm version" src="https://img.shields.io/npm/v/etch-image"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-green"></a>
+  <a href="package.json"><img alt="Node 18+" src="https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white"></a>
+  <a href="#supported-providers"><img alt="OpenAI, Gemini, FLUX" src="https://img.shields.io/badge/providers-OpenAI%20%7C%20Gemini%20%7C%20FLUX-8a2be2"></a>
+  <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey">
+</p>
+
 ## Supported Providers
 
 | Provider | Models |
