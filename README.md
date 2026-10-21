@@ -4,7 +4,7 @@ CLI tool for generating and editing images using popular AI models.
 
 ## Supported Providers
 
-**OpenAI:** `gpt-image-1`, `gpt-image-1.5`
+**OpenAI:** `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`, `gpt-image-1`, `gpt-image-1-mini`
 
 **Gemini:** `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`
 
@@ -51,9 +51,9 @@ You can provide multiple input images. The last two positional arguments are alw
 
 | Flag | Description |
 |------|-------------|
-| `--model <model>` | Model to use (default: `gpt-image-1.5`) |
-| `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`) |
-| `--quality <quality>` | Image quality (OpenAI only) |
+| `--model <model>` | Model to use (default: `gpt-image-2.5-sunburst`) |
+| `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`). OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`) |
+| `--quality <quality>` | Image quality (OpenAI only): `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max` |
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after generation |
 | `--models` | List available models and exit |
@@ -83,6 +83,12 @@ Specify size and quality:
 
 ```bash
 node editImage.js source.png output/edited.png "add a sunset" --size 1536x1024 --quality high
+```
+
+Generate a 4K widescreen image with the top quality setting (`gpt-image-2.5` models only):
+
+```bash
+node textToImage.js output/skyline.png "a city skyline at dusk" --size 3840x2160 --quality max
 ```
 
 Use a FLUX model:
