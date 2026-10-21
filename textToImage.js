@@ -2,32 +2,12 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import dotenv from "dotenv";
+import { MODELS, DEFAULT_MODEL, validateSize, validateQuality, printModels, printSizes } from "./models.js";
 import { textToImageOpenAI } from "./providers/openai.js";
 import { textToImageGemini } from "./providers/gemini.js";
 import { textToImageFlux } from "./providers/flux.js";
 
 dotenv.config();
-
-const MODELS = {
-  "gpt-image-1": "openai",
-  "gpt-image-1.5": "openai",
-  "gemini-2.5-flash-image": "gemini",
-  "gemini-3-pro-image-preview": "gemini",
-  "gemini-3.1-flash-image-preview": "gemini",
-  "flux-kontext-pro": "flux",
-  "flux-kontext-max": "flux",
-  "flux-2-pro": "flux",
-  "flux-2-pro-preview": "flux",
-  "flux-2-flex": "flux",
-};
-
-const DEFAULT_MODEL = "gpt-image-1.5";
-
-const SIZES = {
-  openai: ["1024x1024", "1536x1024", "1024x1536"],
-  gemini: ["512px", "1K", "2K", "4K"],
-  flux: ["aspect ratios: 21:9 to 9:21 (via --size)"],
-};
 
 function parseArgs(argv) {
   const args = argv.slice(2);
@@ -48,17 +28,10 @@ function parseArgs(argv) {
     } else if (args[i] === "--quality" && i + 1 < args.length) {
       quality = args[++i];
     } else if (args[i] === "--models") {
-      console.log("Available models:\n");
-      for (const [name, provider] of Object.entries(MODELS)) {
-        const tag = name === DEFAULT_MODEL ? " (default)" : "";
-        console.log(`  ${name} [${provider}]${tag}`);
-      }
+      printModels();
       process.exit(0);
     } else if (args[i] === "--sizes") {
-      console.log("Available sizes by provider:\n");
-      for (const [provider, sizes] of Object.entries(SIZES)) {
-        console.log(`  ${provider}: ${sizes.join(", ")}`);
-      }
+      printSizes();
       process.exit(0);
     } else if (args[i] === "--open") {
       open = true;
@@ -84,9 +57,15 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  if (size && SIZES[provider] && !SIZES[provider].includes(size)) {
-    console.error(`Invalid size "${size}" for ${provider} provider.`);
-    console.error(`Valid sizes: ${SIZES[provider].join(", ")}`);
+  const sizeError = size && validateSize(model, size);
+  if (sizeError) {
+    console.error(sizeError);
+    process.exit(1);
+  }
+
+  const qualityError = quality && validateQuality(model, quality);
+  if (qualityError) {
+    console.error(qualityError);
     process.exit(1);
   }
 
