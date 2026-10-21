@@ -232,10 +232,11 @@ async function main() {
 
   const started = Date.now();
   let buf;
+  let cost = null;
   try {
-    buf = isEdit
+    ({ buffer: buf, cost } = isEdit
       ? await GENERATORS[provider].edit(prompt, sourceImages, model, size, background, quality)
-      : await GENERATORS[provider].create(prompt, model, size, background, quality);
+      : await GENERATORS[provider].create(prompt, model, size, background, quality));
   } catch (err) {
     clearSpinner();
     fail(err?.message ?? String(err), classifyError(err));
@@ -256,6 +257,8 @@ async function main() {
       background,
       inputs: sourceImages.map((src) => path.resolve(src)),
       elapsed_ms: elapsedMs,
+      cost_usd: cost ? Number(cost.usd.toFixed(4)) : null,
+      cost_estimated: cost ? cost.estimated : null,
     }));
   } else {
     console.log(process.stdout.isTTY ? `Saved: ${output}` : output);
@@ -266,6 +269,7 @@ async function main() {
       ["Quality", quality],
       ["Background", background],
       ["Inputs", sourceImages.length > 0 ? sourceImages.join(", ") : null],
+      [cost?.estimated ? "Estimated cost" : "Cost", cost ? `$${cost.usd.toFixed(3)}` : null],
     ];
     for (const [label, value] of details) {
       if (value) console.error(`  ${label}: ${value}`);

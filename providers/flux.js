@@ -96,7 +96,11 @@ async function submitAndPoll(model, body) {
     if (result.status === "Ready") {
       const imageRes = await fetch(result.result.sample);
       if (!imageRes.ok) throw new Error("Failed to download generated image");
-      return Buffer.from(await imageRes.arrayBuffer());
+      const credits = typeof result.cost === "number" ? result.cost : null;
+      return {
+        buffer: Buffer.from(await imageRes.arrayBuffer()),
+        cost: credits === null ? null : { usd: credits * 0.01, estimated: false },
+      };
     }
 
     if (result.status === "Error" || result.status === "Failed" || result.status === "Request Moderated" || result.status === "Content Moderated") {

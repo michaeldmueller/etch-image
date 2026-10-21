@@ -1,5 +1,17 @@
 import fs from "fs";
 import OpenAI, { toFile } from "openai";
+import { OPENAI_RATES } from "../models.js";
+
+// Estimates cost from the usage block and the published per-token rates.
+function estimateCost(model, usage) {
+  const rate = OPENAI_RATES[model];
+  if (!rate || !usage) return null;
+  const textIn = usage.input_tokens_details?.text_tokens ?? 0;
+  const imageIn = usage.input_tokens_details?.image_tokens ?? 0;
+  const imageOut = usage.output_tokens ?? 0;
+  const usd = (textIn * rate.textIn + imageIn * rate.imageIn + imageOut * rate.imageOut) / 1e6;
+  return { usd, estimated: true };
+}
 
 export async function textToImageOpenAI(prompt, model, size, background, quality) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -13,7 +25,7 @@ export async function textToImageOpenAI(prompt, model, size, background, quality
   });
 
   const b64 = result.data[0].b64_json;
-  return Buffer.from(b64, "base64");
+  return { buffer: Buffer.from(b64, "base64"), cost: estimateCost(model, result.usage) };
 }
 
 export async function generateOpenAI(prompt, sourceImages, model, size, background, quality) {
@@ -35,5 +47,5 @@ export async function generateOpenAI(prompt, sourceImages, model, size, backgrou
   });
 
   const b64 = result.data[0].b64_json;
-  return Buffer.from(b64, "base64");
+  return { buffer: Buffer.from(b64, "base64"), cost: estimateCost(model, result.usage) };
 }

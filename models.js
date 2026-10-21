@@ -85,6 +85,25 @@ export const SIZE_NOTES = {
   flux: `ratios 21:9 to 9:21; flux-3 models accept only ${FLUX3_ASPECT_RATIOS.join(", ")}`,
 };
 
+// Published per-1M-token prices (USD) used to estimate OpenAI and Gemini costs.
+// Providers change prices without notice, so these are estimates. FLUX reports exact cost.
+export const OPENAI_RATES = {
+  "gpt-image-2.5-sunburst": { textIn: 5, imageIn: 8, imageOut: 30 },
+  "gpt-image-2.5-flare": { textIn: 5, imageIn: 8, imageOut: 30 },
+  "gpt-image-2": { textIn: 5, imageIn: 8, imageOut: 30 },
+  "gpt-image-1.5": { textIn: 5, imageIn: 8, imageOut: 32 },
+  "gpt-image-1": { textIn: 5, imageIn: 10, imageOut: 40 },
+  "gpt-image-1-mini": { textIn: 2, imageIn: 2.5, imageOut: 8 },
+};
+
+export const GEMINI_RATES = {
+  "gemini-nano-banana-2.1": { in: 1.5, out: 30 },
+  "gemini-3.1-flash-image": { in: 0.5, out: 60 },
+  "gemini-3.1-flash-lite-image": { in: 0.25, out: 30 },
+  "gemini-3-pro-image": { in: 2, out: 120 },
+  "gemini-2.5-flash-image": { in: 0.3, out: 30 },
+};
+
 export const QUALITIES = {
   openai: ["auto", "low", "medium", "high"],
   flux: FLUX3_RESOLUTIONS,

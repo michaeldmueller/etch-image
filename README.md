@@ -113,8 +113,12 @@ etch --json "a red cube" | jq -r .path
 ```
 
 ```json
-{"path":"/Users/you/etch-20261021-143210-k8v1.png","mode":"generate","provider":"openai","model":"gpt-image-2.5-sunburst","size":null,"quality":null,"background":null,"inputs":[],"elapsed_ms":11840}
+{"path":"/Users/you/etch-20261021-143210-k8v1.png","mode":"generate","provider":"openai","model":"gpt-image-2.5-sunburst","size":null,"quality":null,"background":null,"inputs":[],"elapsed_ms":11840,"cost_usd":0.0412,"cost_estimated":true}
 ```
+
+### Cost
+
+After each run Etch prints what the image cost. FLUX reports the exact charge from the API. For OpenAI and Gemini the figure is computed from the token usage the API returns and the providers' published per-token prices, so it is labelled **Estimated cost** and can drift if a provider changes pricing.
 
 Exit codes:
 
