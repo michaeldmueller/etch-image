@@ -45,18 +45,6 @@ BFL_API_KEY=your_key_here
 
 You only need keys for the providers you plan to use. Keys are read from the shell environment first, then `~/.config/etch/.env`.
 
-### Running from a clone
-
-```bash
-git clone https://github.com/michaeldmueller/etch-image.git
-cd etch-image
-npm install
-npm link
-cp .env.example .env
-```
-
-`npm link` puts the `etch` command on your PATH. A `.env` in the project directory is read before `~/.config/etch/.env`.
-
 ## Usage
 
 ```bash
