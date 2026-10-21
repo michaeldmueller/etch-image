@@ -210,6 +210,17 @@ async function main() {
     fs.writeFileSync(output, buf);
     clearInterval(spinner);
     process.stdout.write(`\rSaved: ${output}\n`);
+    const details = [
+      ["Provider", provider],
+      ["Model", model],
+      ["Size", size],
+      ["Quality", quality],
+      ["Background", background],
+      ["Inputs", sourceImages.length > 0 ? sourceImages.join(", ") : null],
+    ];
+    for (const [label, value] of details) {
+      if (value) console.log(`  ${label}: ${value}`);
+    }
     if (open) {
       openFile(path.resolve(output));
     }
