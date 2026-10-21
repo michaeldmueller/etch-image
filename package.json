@@ -1,9 +1,37 @@
 {
   "name": "picasso",
   "version": "1.0.0",
+  "description": "CLI for generating and editing images with OpenAI, Gemini, and FLUX models",
+  "license": "MIT",
+  "author": "Michael Mueller",
   "type": "module",
   "bin": {
     "picasso": "./picasso.js"
+  },
+  "files": [
+    "picasso.js",
+    "models.js",
+    "providers/",
+    "README.md"
+  ],
+  "keywords": [
+    "image-generation",
+    "cli",
+    "openai",
+    "gpt-image",
+    "gemini",
+    "flux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaeldmueller/Picasso.git"
+  },
+  "homepage": "https://github.com/michaeldmueller/Picasso#readme",
+  "bugs": {
+    "url": "https://github.com/michaeldmueller/Picasso/issues"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
