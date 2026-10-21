@@ -4,11 +4,11 @@ CLI tool for generating and editing images using popular AI models.
 
 ## Supported Providers
 
-**OpenAI:** `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`, `gpt-image-1`, `gpt-image-1-mini`
-
-**Gemini:** `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`
-
-**FLUX (Black Forest Labs):** `flux-kontext-pro`, `flux-kontext-max`, `flux-2-pro`, `flux-2-pro-preview`, `flux-2-flex`
+| Provider | Models |
+|----------|--------|
+| OpenAI | <ul><li>gpt-image-2.5-sunburst</li><li>gpt-image-2.5-flare</li><li>gpt-image-2</li><li>gpt-image-1.5</li><li>gpt-image-1</li><li>gpt-image-1-mini</li></ul> |
+| Gemini | <ul><li>gemini-2.5-flash-image</li><li>gemini-3-pro-image-preview</li><li>gemini-3.1-flash-image-preview</li></ul> |
+| FLUX (Black Forest Labs) | <ul><li>flux-kontext-pro</li><li>flux-kontext-max</li><li>flux-2-pro</li><li>flux-2-pro-preview</li><li>flux-2-flex</li></ul> |
 
 ## Setup
 
