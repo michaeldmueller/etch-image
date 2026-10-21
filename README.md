@@ -67,10 +67,10 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 
 | Flag | Description |
 |------|-------------|
-| `-o, --output <path>` | Where to save the image (default: auto-named PNG in the current directory). An existing file is never overwritten unless `--force` is given |
+| `-o, --output <path>` | Where to save the image (default: an auto-named PNG in the current directory). Never overwrites an existing file unless `--force` is given |
 | `--model <model>` | Model to use (default: `gpt-image-2.5-sunburst`) |
-| `--size <size>` | OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`). Gemini: `1K`, `2K`, `4K` (`gemini-3.1-flash-image` also `512px`; `gemini-3.1-flash-lite-image` only `1K`). FLUX: an aspect ratio like `16:9` (21:9 to 9:21; `flux-3` models take a fixed list, see `--sizes`), or `WIDTHxHEIGHT` for FLUX 2, 1.1 and dev. A ratio is converted to about 1 megapixel for models that take dimensions |
-| `--quality <quality>` | OpenAI: `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max`. FLUX 3: resolution tier `768sq`, `1k`, `1.5k`, `2k`, `4k` |
+| `--size <size>` | Output size; depends on the provider, see [Sizes and quality](#sizes-and-quality) |
+| `--quality <quality>` | Quality level (OpenAI) or resolution tier (FLUX 3), see [Sizes and quality](#sizes-and-quality) |
 | `--background <background>` | Background style (OpenAI only) |
 | `--open` | Open the image after it is saved (default when run from a terminal) |
 | `--dont-open` | Don't open the image after it is saved |
@@ -79,6 +79,25 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 | `--models` | List available models and exit |
 | `--sizes` | List available sizes by provider and exit |
 | `--config` | Show the config file path and effective defaults, then exit |
+
+### Sizes and quality
+
+What `--size` and `--quality` accept depends on the model. Run `etch --sizes` for the list.
+
+**OpenAI**
+
+- Size: `auto`, `1024x1024`, `1536x1024`, `1024x1536`. `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`).
+- Quality: `auto`, `low`, `medium`, `high`. `gpt-image-2.5` models also accept `xhigh` and `max`.
+
+**Gemini**
+
+- Size: `1K`, `2K`, `4K`. `gemini-3.1-flash-image` also accepts `512px`, `gemini-3.1-flash-lite-image` only `1K`, and `gemini-2.5-flash-image` takes no size.
+- Quality: not supported.
+
+**FLUX**
+
+- Size: an aspect ratio like `16:9`, from 21:9 to 9:21. `flux-3` models take a fixed list of ratios (see `--sizes`). FLUX 2, 1.1 and dev also accept `WIDTHxHEIGHT`; a ratio is converted to about 1 megapixel for these models.
+- Quality: `flux-3` models only, as a resolution tier: `768sq`, `1k`, `1.5k`, `2k`, `4k`.
 
 ### Configuration
 
