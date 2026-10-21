@@ -1,5 +1,6 @@
 import fs from "fs";
 import { FLUX_FAMILIES } from "../models.js";
+import { runBatch } from "./batch.js";
 
 const BFL_API_URL = "https://api.bfl.ai/v1";
 const BFL_POLL_INTERVAL_MS = 2000;
@@ -111,10 +112,8 @@ async function submitAndPoll(model, body) {
   }
 }
 
-export async function textToImageFlux(prompt, model, size, background, quality) {
-  return submitAndPoll(model, buildFluxBody(model, prompt, [], size, quality));
-}
-
-export async function generateFlux(prompt, sourceImages, model, size, background, quality) {
-  return submitAndPoll(model, buildFluxBody(model, prompt, sourceImages, size, quality));
+// FLUX returns one image per task, so several images mean several concurrent tasks.
+export async function generateFlux({ prompt, sourceImages, model, size, quality, count }) {
+  const body = buildFluxBody(model, prompt, sourceImages, size, quality);
+  return runBatch(count, () => submitAndPoll(model, body));
 }

@@ -63,6 +63,7 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 | Flag | Description |
 |------|-------------|
 | `-o, --output <path>` | Where to save the image (default: an auto-named PNG in the current directory). Never overwrites an existing file unless `--force` is given |
+| `-n, --count <n>` | Number of images to generate, 1 to 10 (default: 1). With `-o`, files get a `-1`, `-2`, ... suffix |
 | `--model <model>` | Model to use (default: `gpt-image-2.5-sunburst`) |
 | `--size <size>` | Output size; depends on the provider, see [Sizes and quality](#sizes-and-quality) |
 | `--quality <quality>` | Quality level (OpenAI) or resolution tier (FLUX 3), see [Sizes and quality](#sizes-and-quality) |
@@ -107,11 +108,11 @@ Any option's default can be changed in `~/.config/etch/config.json` (or `$XDG_CO
 }
 ```
 
-Supported settings: `model`, `size`, `quality`, `background`, `open`, `output_dir`. The `output_dir` setting only applies when `-o` is not given. Run `etch --config` to see the effective defaults.
+Supported settings: `model`, `size`, `quality`, `background`, `count`, `open`, `output_dir`. The `output_dir` setting only applies when `-o` is not given. Run `etch --config` to see the effective defaults.
 
 ### Scripting
 
-Only the saved path is written to stdout. Progress and the model details go to stderr, and when stdout is not a terminal the spinner and auto-open are skipped. So the output can be captured or piped directly:
+Only the saved paths are written to stdout, one per line. Progress and the model details go to stderr, and when stdout is not a terminal the spinner and auto-open are skipped. So the output can be captured or piped directly:
 
 ```bash
 file=$(etch "a red cube")
@@ -120,14 +121,14 @@ etch "a red cube" | xargs open
 
 Pass `--open` to open the image anyway.
 
-With `--json`, stdout is a single JSON object and errors on stderr are JSON too:
+With `--json`, stdout is a single JSON object and errors on stderr are JSON too. `path` is the first image and `paths` lists all of them:
 
 ```bash
 etch --json "a red cube" | jq -r .path
 ```
 
 ```json
-{"path":"/Users/you/etch-20261021-143210-k8v1.png","mode":"generate","provider":"openai","model":"gpt-image-2.5-sunburst","size":null,"quality":null,"background":null,"inputs":[],"elapsed_ms":11840,"cost_usd":0.0412,"cost_estimated":true}
+{"path":"/Users/you/etch-20261021-143210-k8v1.png","paths":["/Users/you/etch-20261021-143210-k8v1.png"],"mode":"generate","provider":"openai","model":"gpt-image-2.5-sunburst","size":null,"quality":null,"background":null,"inputs":[],"elapsed_ms":11840,"cost_usd":0.0412,"cost_estimated":true}
 ```
 
 Exit codes:
@@ -151,6 +152,12 @@ Save to a specific file:
 
 ```bash
 etch "a dramatic sunset over the ocean" -o output/sunset.png
+```
+
+Generate four variations at once:
+
+```bash
+etch "a dramatic sunset over the ocean" -n 4
 ```
 
 Edit an image:

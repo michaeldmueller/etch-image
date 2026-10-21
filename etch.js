@@ -7,9 +7,9 @@ import os from "os";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import { MODELS, DEFAULT_MODEL, validateSize, validateQuality, printModels, printSizes } from "./models.js";
-import { textToImageOpenAI, generateOpenAI } from "./providers/openai.js";
-import { textToImageGemini, generateGemini } from "./providers/gemini.js";
-import { textToImageFlux, generateFlux } from "./providers/flux.js";
+import { generateOpenAI } from "./providers/openai.js";
+import { generateGemini } from "./providers/gemini.js";
+import { generateFlux } from "./providers/flux.js";
 
 // User config lives in $XDG_CONFIG_HOME/etch, or ~/.config/etch when that is unset.
 const CONFIG_DIR = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "etch");
@@ -20,10 +20,12 @@ const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
 dotenv.config({ path: path.join(CONFIG_DIR, ".env") });
 
-const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open] [--json] [--force]';
+const USAGE = 'Usage: etch [input_file ...] "prompt" [-o <output_file>] [-n <count>] [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open] [--json] [--force]';
 
 // Exit codes: 1 usage or config error, 2 provider/API error, 3 request refused by content moderation.
 const EXIT = { usage: 1, api: 2, moderation: 3 };
+
+const MAX_COUNT = 10;
 
 let jsonMode = false;
 
@@ -49,9 +51,14 @@ const DEFAULTS = {
   size: null,
   quality: null,
   background: null,
+  count: 1,
   open: true,
   output_dir: null,
 };
+
+function isValidCount(value) {
+  return Number.isInteger(value) && value >= 1 && value <= MAX_COUNT;
+}
 
 function loadConfig() {
   let raw;
@@ -76,6 +83,9 @@ function loadConfig() {
   if ("open" in config && typeof config.open !== "boolean") {
     fail(`Invalid value for "open" in ${CONFIG_PATH}: expected true or false`);
   }
+  if ("count" in config && !isValidCount(config.count)) {
+    fail(`Invalid value for "count" in ${CONFIG_PATH}: expected a whole number from 1 to ${MAX_COUNT}`);
+  }
   return config;
 }
 
@@ -91,6 +101,20 @@ function defaultOutputPath(outputDir) {
   const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
   const id = Array.from({ length: 4 }, () => alphabet[crypto.randomInt(alphabet.length)]).join("");
   return path.join(outputDir ? expandHome(outputDir) : process.cwd(), `etch-${stamp}-${id}.png`);
+}
+
+// One path per image. An explicit -o gets a -1, -2, ... suffix before the extension when
+// more than one image is requested; auto-named files each get their own name.
+function outputPaths(output, count, outputDir) {
+  if (!output) {
+    const paths = new Set();
+    while (paths.size < count) paths.add(defaultOutputPath(outputDir));
+    return [...paths];
+  }
+  if (count === 1) return [output];
+  const ext = path.extname(output);
+  const base = output.slice(0, output.length - ext.length);
+  return Array.from({ length: count }, (_, i) => `${base}-${i + 1}${ext}`);
 }
 
 function printConfig(settings) {
@@ -115,7 +139,7 @@ function parseArgs(argv) {
   const args = argv.slice(2);
   jsonMode = args.includes("--json");
   const settings = { ...DEFAULTS, ...loadConfig() };
-  let { model, size, background, quality, output_dir: outputDir } = settings;
+  let { model, size, background, quality, count, output_dir: outputDir } = settings;
   let open = null; // null until a flag sets it; resolved below
   let output = null;
   let force = false;
@@ -124,6 +148,10 @@ function parseArgs(argv) {
   for (let i = 0; i < args.length; i++) {
     if ((args[i] === "--output" || args[i] === "-o") && i + 1 < args.length) {
       output = args[++i];
+    } else if ((args[i] === "--count" || args[i] === "-n") && i + 1 < args.length) {
+      const raw = args[++i];
+      count = /^\d+$/.test(raw) ? Number(raw) : NaN;
+      if (!isValidCount(count)) fail(`Invalid count "${raw}": expected a whole number from 1 to ${MAX_COUNT}`);
     } else if (args[i] === "--model" && i + 1 < args.length) {
       model = args[++i];
     } else if (args[i] === "--size" && i + 1 < args.length) {
@@ -171,11 +199,11 @@ function parseArgs(argv) {
     if (ext && ext !== ".png") {
       console.error(`Warning: images are saved as PNG regardless of the extension (${output}).`);
     }
-    if (fs.existsSync(output) && !force) {
-      fail(`Output file already exists: ${output}\nPass --force to overwrite it.`);
-    }
-  } else {
-    output = defaultOutputPath(outputDir);
+  }
+  const outputs = outputPaths(output, count, outputDir);
+  const existing = outputs.filter((file) => fs.existsSync(file));
+  if (existing.length > 0 && !force) {
+    fail(`Output file${existing.length > 1 ? "s" : ""} already exist${existing.length > 1 ? "" : "s"}: ${existing.join(", ")}\nPass --force to overwrite.`);
   }
 
   for (const src of sourceImages) {
@@ -199,25 +227,26 @@ function parseArgs(argv) {
   // Without an explicit flag, open only when the configured default says so and a person is watching.
   if (open === null) open = settings.open && Boolean(process.stdout.isTTY) && !jsonMode;
 
-  return { output, prompt, sourceImages, provider, model, size, background, quality, open };
+  return { outputs, prompt, sourceImages, provider, model, size, background, quality, count, open };
 }
 
 const GENERATORS = {
-  openai: { create: textToImageOpenAI, edit: generateOpenAI },
-  gemini: { create: textToImageGemini, edit: generateGemini },
-  flux: { create: textToImageFlux, edit: generateFlux },
+  openai: generateOpenAI,
+  gemini: generateGemini,
+  flux: generateFlux,
 };
 
 async function main() {
-  const { output, prompt, sourceImages, provider, model, size, background, quality, open } = parseArgs(process.argv);
+  const { outputs, prompt, sourceImages, provider, model, size, background, quality, count, open } = parseArgs(process.argv);
 
-  const outputDir = path.dirname(path.resolve(output));
-  fs.mkdirSync(outputDir, { recursive: true });
+  for (const dir of new Set(outputs.map((file) => path.dirname(path.resolve(file))))) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
-  // Progress and details go to stderr so stdout carries only the saved path.
+  // Progress and details go to stderr so stdout carries only the saved paths.
   // The spinner is skipped when stderr is not a terminal (logs, pipes).
   const isEdit = sourceImages.length > 0;
-  const verb = isEdit ? "Editing" : "Generating";
+  const verb = `${isEdit ? "Editing" : "Generating"}${count > 1 ? ` ${count} images` : ""}`;
   const frames = [`${verb}.`, `${verb}..`, `${verb}...`];
   let i = 0;
   const spinner = process.stderr.isTTY && !jsonMode
@@ -231,24 +260,27 @@ async function main() {
   };
 
   const started = Date.now();
-  let buf;
+  let buffers;
   let cost = null;
+  let errors = [];
   try {
-    ({ buffer: buf, cost } = isEdit
-      ? await GENERATORS[provider].edit(prompt, sourceImages, model, size, background, quality)
-      : await GENERATORS[provider].create(prompt, model, size, background, quality));
+    ({ buffers, cost, errors } = await GENERATORS[provider]({ prompt, sourceImages, model, size, background, quality, count }));
   } catch (err) {
     clearSpinner();
     fail(err?.message ?? String(err), classifyError(err));
   }
   const elapsedMs = Date.now() - started;
 
-  fs.writeFileSync(output, buf);
+  // When some images failed, the ones that succeeded still take the first output names.
+  const saved = outputs.slice(0, buffers.length);
+  saved.forEach((file, idx) => fs.writeFileSync(file, buffers[idx]));
   clearSpinner();
 
   if (jsonMode) {
+    const paths = saved.map((file) => path.resolve(file));
     console.log(JSON.stringify({
-      path: path.resolve(output),
+      path: paths[0],
+      paths,
       mode: isEdit ? "edit" : "generate",
       provider,
       model,
@@ -261,7 +293,9 @@ async function main() {
       cost_estimated: cost ? cost.estimated : null,
     }));
   } else {
-    console.log(process.stdout.isTTY ? `Saved: ${output}` : output);
+    for (const file of saved) {
+      console.log(process.stdout.isTTY ? `Saved: ${file}` : file);
+    }
     const details = [
       ["Provider", provider],
       ["Model", model],
@@ -277,7 +311,12 @@ async function main() {
   }
 
   if (open) {
-    openFile(path.resolve(output));
+    for (const file of saved) openFile(path.resolve(file));
+  }
+
+  if (errors.length > 0) {
+    const message = `${errors.length} of ${count} images failed: ${errors[0]?.message ?? String(errors[0])}`;
+    fail(message, classifyError(errors[0]));
   }
 }
 
