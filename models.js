@@ -33,11 +33,12 @@ const OPENAI_EXTENDED_QUALITY_MODELS = new Set([
 export const SIZES = {
   openai: ["auto", "1024x1024", "1536x1024", "1024x1536"],
   gemini: ["512px", "1K", "2K", "4K"],
-  flux: ["aspect ratios: 21:9 to 9:21 (via --size)"],
+  flux: ["aspect ratio W:H (e.g. 16:9)"],
 };
 
 export const SIZE_NOTES = {
   openai: "gpt-image-2 and later also accept any WIDTHxHEIGHT (multiples of 16, aspect ratio 1:3 to 3:1, up to 3840x2160)",
+  flux: "21:9 to 9:21",
 };
 
 export const QUALITIES = {
@@ -62,17 +63,31 @@ function isValidOpenAICustomSize(size) {
   return ratio >= 1 / 3 && ratio <= 3;
 }
 
+function isValidFluxAspectRatio(size) {
+  const match = /^(\d+):(\d+)$/.exec(size);
+  if (!match) return false;
+  const ratio = Number(match[1]) / Number(match[2]);
+  return ratio >= 9 / 21 && ratio <= 21 / 9;
+}
+
 // Returns an error message, or null if the size is valid for the model.
 export function validateSize(model, size) {
   const provider = MODELS[model];
   const sizes = SIZES[provider];
-  if (!sizes || sizes.includes(size)) return null;
-  if (provider === "openai" && OPENAI_CUSTOM_SIZE_MODELS.has(model) && isValidOpenAICustomSize(size)) {
+  if (!sizes) return null;
+
+  if (provider === "flux") {
+    if (isValidFluxAspectRatio(size)) return null;
+  } else if (sizes.includes(size)) {
+    return null;
+  } else if (provider === "openai" && OPENAI_CUSTOM_SIZE_MODELS.has(model) && isValidOpenAICustomSize(size)) {
     return null;
   }
 
   const lines = [`Invalid size "${size}" for ${model}.`, `Valid sizes: ${sizes.join(", ")}`];
-  if (provider === "openai" && OPENAI_CUSTOM_SIZE_MODELS.has(model)) {
+  if (provider === "flux") {
+    lines.push(`Valid aspect ratios: ${SIZE_NOTES.flux}`);
+  } else if (provider === "openai" && OPENAI_CUSTOM_SIZE_MODELS.has(model)) {
     lines.push(`Custom sizes: ${SIZE_NOTES.openai}`);
   }
   return lines.join("\n");
