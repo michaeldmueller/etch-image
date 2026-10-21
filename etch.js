@@ -98,7 +98,8 @@ function openFile(file) {
 function parseArgs(argv) {
   const args = argv.slice(2);
   const settings = { ...DEFAULTS, ...loadConfig() };
-  let { model, size, background, quality, open, output_dir: outputDir } = settings;
+  let { model, size, background, quality, output_dir: outputDir } = settings;
+  let open = null; // null until a flag sets it; resolved below
   let output = null;
   const positional = [];
 
@@ -182,6 +183,9 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
+  // Without an explicit flag, open only when the configured default says so and a person is watching.
+  if (open === null) open = settings.open && Boolean(process.stdout.isTTY);
+
   return { output, prompt, sourceImages, provider, model, size, background, quality, open };
 }
 
@@ -197,13 +201,21 @@ async function main() {
   const outputDir = path.dirname(path.resolve(output));
   fs.mkdirSync(outputDir, { recursive: true });
 
+  // Progress and details go to stderr so stdout carries only the saved path.
+  // The spinner is skipped when stderr is not a terminal (logs, pipes).
   const isEdit = sourceImages.length > 0;
   const verb = isEdit ? "Editing" : "Generating";
   const frames = [`${verb}.`, `${verb}..`, `${verb}...`];
   let i = 0;
-  const spinner = setInterval(() => {
-    process.stdout.write(`\r${frames[i++ % frames.length]}`);
-  }, 400);
+  const spinner = process.stderr.isTTY
+    ? setInterval(() => process.stderr.write(`\r${frames[i++ % frames.length]}`), 400)
+    : null;
+  const clearSpinner = () => {
+    if (spinner) {
+      clearInterval(spinner);
+      process.stderr.write("\r\x1b[K");
+    }
+  };
 
   try {
     const buf = isEdit
@@ -211,8 +223,8 @@ async function main() {
       : await GENERATORS[provider].create(prompt, model, size, background, quality);
 
     fs.writeFileSync(output, buf);
-    clearInterval(spinner);
-    process.stdout.write(`\rSaved: ${output}\n`);
+    clearSpinner();
+    console.log(process.stdout.isTTY ? `Saved: ${output}` : output);
     const details = [
       ["Provider", provider],
       ["Model", model],
@@ -222,14 +234,13 @@ async function main() {
       ["Inputs", sourceImages.length > 0 ? sourceImages.join(", ") : null],
     ];
     for (const [label, value] of details) {
-      if (value) console.log(`  ${label}: ${value}`);
+      if (value) console.error(`  ${label}: ${value}`);
     }
     if (open) {
       openFile(path.resolve(output));
     }
   } catch (err) {
-    clearInterval(spinner);
-    process.stdout.write(`\r`);
+    clearSpinner();
     throw err;
   }
 }

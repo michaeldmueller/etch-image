@@ -72,7 +72,7 @@ The result is saved as a PNG. Pass `-o <path>` to choose the file, or leave it o
 | `--size <size>` | OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`). Gemini: `1K`, `2K`, `4K` (`gemini-3.1-flash-image` also `512px`; `gemini-3.1-flash-lite-image` only `1K`). FLUX: an aspect ratio like `16:9` (21:9 to 9:21; `flux-3` models take a fixed list, see `--sizes`), or `WIDTHxHEIGHT` for FLUX 2, 1.1 and dev. A ratio is converted to about 1 megapixel for models that take dimensions |
 | `--quality <quality>` | OpenAI: `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max`. FLUX 3: resolution tier `768sq`, `1k`, `1.5k`, `2k`, `4k` |
 | `--background <background>` | Background style (OpenAI only) |
-| `--open` | Open the image after it is saved (default) |
+| `--open` | Open the image after it is saved (default when run from a terminal) |
 | `--dont-open` | Don't open the image after it is saved |
 | `--models` | List available models and exit |
 | `--sizes` | List available sizes by provider and exit |
@@ -92,6 +92,17 @@ Any option's default can be changed in `~/.config/etch/config.json` (or `$XDG_CO
 ```
 
 Supported settings: `model`, `size`, `quality`, `background`, `open`, `output_dir`. The `output_dir` setting only applies when `-o` is not given. Run `etch --config` to see the effective defaults.
+
+### Scripting
+
+Only the saved path is written to stdout. Progress and the model details go to stderr, and when stdout is not a terminal the spinner and auto-open are skipped. So the output can be captured or piped directly:
+
+```bash
+file=$(etch "a red cube")
+etch "a red cube" | xargs open
+```
+
+Pass `--open` to open the image anyway.
 
 ### Examples
 
