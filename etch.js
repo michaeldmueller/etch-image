@@ -15,15 +15,66 @@ import { textToImageFlux, generateFlux } from "./providers/flux.js";
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env") });
 dotenv.config({ path: path.join(os.homedir(), ".etch", ".env") });
 
-const USAGE = 'Usage: etch [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open]';
+const USAGE = 'Usage: etch [input_file ...] <output_file> "prompt" [--model <model>] [--size <size>] [--quality <quality>] [--background <background>] [--open | --dont-open]';
+
+// Built-in defaults. Any of these can be overridden in ~/.etch/config.json,
+// and a CLI flag overrides both.
+const CONFIG_PATH = path.join(os.homedir(), ".etch", "config.json");
+const DEFAULTS = {
+  model: DEFAULT_MODEL,
+  size: null,
+  quality: null,
+  background: null,
+  open: true,
+};
+
+function loadConfig() {
+  let raw;
+  try {
+    raw = fs.readFileSync(CONFIG_PATH, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") return {};
+    throw err;
+  }
+
+  let config;
+  try {
+    config = JSON.parse(raw);
+  } catch (err) {
+    console.error(`Invalid JSON in ${CONFIG_PATH}: ${err.message}`);
+    process.exit(1);
+  }
+
+  const unknown = Object.keys(config).filter((key) => !(key in DEFAULTS));
+  if (unknown.length > 0) {
+    console.error(`Unknown setting${unknown.length > 1 ? "s" : ""} in ${CONFIG_PATH}: ${unknown.join(", ")}`);
+    console.error(`Valid settings: ${Object.keys(DEFAULTS).join(", ")}`);
+    process.exit(1);
+  }
+  if ("open" in config && typeof config.open !== "boolean") {
+    console.error(`Invalid value for "open" in ${CONFIG_PATH}: expected true or false`);
+    process.exit(1);
+  }
+  return config;
+}
+
+function printConfig(settings) {
+  console.log(`Config file: ${CONFIG_PATH}${fs.existsSync(CONFIG_PATH) ? "" : " (not found)"}\n`);
+  console.log("Effective defaults:\n");
+  for (const [key, value] of Object.entries(settings)) {
+    console.log(`  ${key}: ${value === null ? "(provider default)" : value}`);
+  }
+}
+
+function openFile(file) {
+  const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? 'start ""' : "xdg-open";
+  execSync(`${cmd} "${file}"`);
+}
 
 function parseArgs(argv) {
   const args = argv.slice(2);
-  let model = null;
-  let size = null;
-  let background = null;
-  let quality = null;
-  let open = false;
+  const settings = { ...DEFAULTS, ...loadConfig() };
+  let { model, size, background, quality, open } = settings;
   const positional = [];
 
   for (let i = 0; i < args.length; i++) {
@@ -43,6 +94,11 @@ function parseArgs(argv) {
       process.exit(0);
     } else if (args[i] === "--open") {
       open = true;
+    } else if (args[i] === "--dont-open") {
+      open = false;
+    } else if (args[i] === "--config") {
+      printConfig(settings);
+      process.exit(0);
     } else if (args[i] === "--help" || args[i] === "-h") {
       console.log(USAGE);
       process.exit(0);
@@ -123,7 +179,7 @@ async function main() {
     clearInterval(spinner);
     process.stdout.write(`\rSaved: ${output}\n`);
     if (open) {
-      execSync(`open "${path.resolve(output)}"`);
+      openFile(path.resolve(output));
     }
   } catch (err) {
     clearInterval(spinner);

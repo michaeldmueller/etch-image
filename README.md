@@ -51,22 +51,38 @@ The last two positional arguments are always the output file and the prompt. Any
 | `--size <size>` | Image dimensions (aspect ratio for FLUX, e.g. `16:9`). OpenAI: `auto`, `1024x1024`, `1536x1024`, `1024x1536`; `gpt-image-2` and later also accept any `WIDTHxHEIGHT` (multiples of 16, aspect ratio 1:3 to 3:1, up to `3840x2160`) |
 | `--quality <quality>` | Image quality (OpenAI only): `auto`, `low`, `medium`, `high`; `gpt-image-2.5` models also accept `xhigh` and `max` |
 | `--background <background>` | Background style (OpenAI only) |
-| `--open` | Open the image after generation |
+| `--open` | Open the image after it is saved (default) |
+| `--dont-open` | Don't open the image after it is saved |
 | `--models` | List available models and exit |
 | `--sizes` | List available sizes by provider and exit |
+| `--config` | Show the config file path and effective defaults, then exit |
+
+### Configuration
+
+Any option's default can be changed in `~/.etch/config.json`. A flag on the command line always wins over the config file.
+
+```json
+{
+  "open": false,
+  "model": "gpt-image-2.5-flare",
+  "quality": "high"
+}
+```
+
+Supported settings: `model`, `size`, `quality`, `background`, `open`. Run `etch --config` to see the effective defaults.
 
 ### Examples
 
 Generate an image from a prompt:
 
 ```bash
-etch output/sunset.png "a dramatic sunset over the ocean" --open
+etch output/sunset.png "a dramatic sunset over the ocean"
 ```
 
 Edit an image:
 
 ```bash
-etch source.png output/edited.png "make the sky purple" --open
+etch source.png output/edited.png "make the sky purple"
 ```
 
 Use a specific model:
@@ -97,4 +113,10 @@ Use multiple input images:
 
 ```bash
 etch room.jpg reference.jpg output/restyled.png "restyle the first room to match the second"
+```
+
+Save without opening the result:
+
+```bash
+etch output/icon.png "a minimal app icon" --dont-open
 ```
