@@ -6,7 +6,7 @@
   "author": "Michael Mueller",
   "type": "module",
   "bin": {
-    "etch": "./etch.js"
+    "etch": "etch.js"
   },
   "files": [
     "etch.js",
