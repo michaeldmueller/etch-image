@@ -20,7 +20,7 @@ If `$ARGUMENTS` is not empty, treat it as the prompt and generate an image from 
    ```
 
    Every `etch ...` command below works the same way as `npx -y etch-image ...`. Mention `npm install -g etch-image` to the user once, so later runs start faster, but do not block on it.
-2. API keys live in `~/.config/etch/.env` (or the shell environment): `OPENAI_API_KEY`, `GEMINI_API_KEY`, `BFL_API_KEY`. Only the key for the chosen provider is needed. If a run fails with exit code 2 and no key is set, tell the user which variable to add to that file. Never print or echo a key.
+2. API keys come from the shell environment or `~/.config/etch/.env`: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `BFL_API_KEY`. Only the key for the chosen provider is needed. In Claude Code the plugin asks for them when it is enabled; they can be changed later under **Configure options** for the etch plugin in `/plugin`, and take effect in the next session. If a run fails with exit code 2 and the key is missing, tell the user to set it one of those ways. Never print or echo a key.
 
 ## How to call it
 

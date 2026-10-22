@@ -1,11 +1,40 @@
 {
   "name": "etch",
   "displayName": "Etch",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Generate and edit images from Claude Code with the etch CLI (OpenAI, Gemini, FLUX)",
-  "author": { "name": "Michael Mueller", "url": "https://github.com/michaeldmueller" },
+  "author": {
+    "name": "Michael Mueller",
+    "url": "https://github.com/michaeldmueller"
+  },
   "homepage": "https://github.com/michaeldmueller/etch-image",
   "repository": "https://github.com/michaeldmueller/etch-image",
   "license": "MIT",
-  "keywords": ["image", "image-generation", "openai", "gemini", "flux"]
+  "keywords": [
+    "image",
+    "image-generation",
+    "openai",
+    "gemini",
+    "flux"
+  ],
+  "userConfig": {
+    "openai_api_key": {
+      "type": "string",
+      "title": "OpenAI API key",
+      "description": "For gpt-image models. Leave empty if you don't use OpenAI.",
+      "sensitive": true
+    },
+    "gemini_api_key": {
+      "type": "string",
+      "title": "Gemini API key",
+      "description": "For gemini image models. Leave empty if you don't use Gemini.",
+      "sensitive": true
+    },
+    "bfl_api_key": {
+      "type": "string",
+      "title": "Black Forest Labs API key",
+      "description": "For FLUX models. Leave empty if you don't use FLUX.",
+      "sensitive": true
+    }
+  }
 }
