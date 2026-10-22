@@ -1,6 +1,6 @@
 {
   "name": "etch-image",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Scriptable CLI tool for generating and editing images with OpenAI, Gemini, and FLUX",
   "license": "MIT",
   "author": "Michael Mueller",
