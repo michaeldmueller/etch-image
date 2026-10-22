@@ -6,7 +6,7 @@ Ask for an image in a session and the agent runs `etch` for you, saves the PNG u
 
 ## Requirements
 
-- Node 18 or later, with `npm install -g etch-image`
+- Node 18 or later. Installing the CLI with `npm install -g etch-image` is optional; without it the skill runs `npx -y etch-image`, which is slower on the first call
 - An API key for at least one provider in `~/.config/etch/.env`: `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `BFL_API_KEY`
 
 ## Install

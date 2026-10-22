@@ -1,6 +1,6 @@
 {
   "name": "etch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generate and edit images from Codex with the etch CLI (OpenAI, Gemini, FLUX)",
   "author": { "name": "Michael Mueller", "url": "https://github.com/michaeldmueller" },
   "homepage": "https://github.com/michaeldmueller/etch-image",

@@ -2,7 +2,7 @@
 name: etch
 description: Generate or edit images from the terminal with the etch CLI, using OpenAI, Gemini, or FLUX models. Use when the user asks to create, generate, draw, render, or edit an image, icon, logo, illustration, mockup, texture, or picture, or to make variations of an existing image.
 argument-hint: "[prompt]"
-allowed-tools: Bash(etch:*), Bash(command -v etch)
+allowed-tools: Bash(etch:*), Bash(npx -y etch-image:*), Bash(command -v etch)
 ---
 
 # Etch
@@ -13,8 +13,14 @@ If `$ARGUMENTS` is not empty, treat it as the prompt and generate an image from 
 
 ## Before the first run
 
-1. Check that it is installed: `command -v etch`. If not, tell the user to run `npm install -g etch-image` (Node 18 or later).
-2. API keys live in `~/.config/etch/.env` (or the shell environment): `OPENAI_API_KEY`, `GEMINI_API_KEY`, `BFL_API_KEY`. Only the key for the chosen provider is needed. Never print or echo a key.
+1. Check whether it is installed: `command -v etch`. If it is not, run it through npx instead, which downloads and caches the package on first use with no global install:
+
+   ```bash
+   npx -y etch-image --json "prompt"
+   ```
+
+   Every `etch ...` command below works the same way as `npx -y etch-image ...`. Mention `npm install -g etch-image` to the user once, so later runs start faster, but do not block on it.
+2. API keys live in `~/.config/etch/.env` (or the shell environment): `OPENAI_API_KEY`, `GEMINI_API_KEY`, `BFL_API_KEY`. Only the key for the chosen provider is needed. If a run fails with exit code 2 and no key is set, tell the user which variable to add to that file. Never print or echo a key.
 
 ## How to call it
 
