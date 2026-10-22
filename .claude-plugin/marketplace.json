@@ -1,0 +1,14 @@
+{
+  "name": "etch-image",
+  "description": "Etch: generate and edit images from the terminal with OpenAI, Gemini, and FLUX",
+  "owner": { "name": "Michael Mueller", "url": "https://github.com/michaeldmueller" },
+  "plugins": [
+    {
+      "name": "etch",
+      "source": "./plugins/etch",
+      "description": "Generate and edit images with the etch CLI",
+      "category": "productivity",
+      "tags": ["image", "image-generation", "openai", "gemini", "flux"]
+    }
+  ]
+}

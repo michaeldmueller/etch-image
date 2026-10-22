@@ -207,3 +207,22 @@ Save without opening the result:
 ```bash
 etch "a minimal app icon" --dont-open
 ```
+
+## Claude Code and Codex plugins
+
+The repo ships a plugin that teaches Claude Code and Codex how to use Etch: ask for an image in a session and the agent runs `etch` for you, names the file sensibly, and reports the cost. It needs `etch` installed and an API key configured as described in Setup.
+
+Claude Code:
+
+```
+/plugin install etch --marketplace michaeldmueller/etch-image
+```
+
+Codex:
+
+```bash
+codex plugin marketplace add michaeldmueller/etch-image
+codex plugin add etch@etch-image
+```
+
+Both read the same skill, in `plugins/etch/skills/etch/SKILL.md`. To use it as a standalone skill instead, copy that folder to `~/.claude/skills/etch` or `~/.agents/skills/etch`.

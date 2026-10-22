@@ -1,0 +1,22 @@
+{
+  "name": "etch",
+  "version": "1.0.0",
+  "description": "Generate and edit images from Codex with the etch CLI (OpenAI, Gemini, FLUX)",
+  "author": { "name": "Michael Mueller", "url": "https://github.com/michaeldmueller" },
+  "homepage": "https://github.com/michaeldmueller/etch-image",
+  "repository": "https://github.com/michaeldmueller/etch-image",
+  "license": "MIT",
+  "keywords": ["image", "image-generation", "openai", "gemini", "flux"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Etch",
+        "shortDescription": "Generate and edit images with OpenAI, Gemini, and FLUX",
+        "longDescription": "Adds an etch skill that generates or edits images from a prompt using the etch command-line tool. Requires etch (npm install -g etch-image) and an API key for at least one provider.",
+        "developerName": "Michael Mueller",
+        "category": "Productivity",
+        "websiteURL": "https://github.com/michaeldmueller/etch-image"
+      }
+    }
+  }
+}
